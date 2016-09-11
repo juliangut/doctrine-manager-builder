@@ -190,7 +190,7 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
      * @param string $option
      * @param mixed  $value
      *
-     * @return $this;
+     * @return $this
      */
     public function setOption($option, $value)
     {

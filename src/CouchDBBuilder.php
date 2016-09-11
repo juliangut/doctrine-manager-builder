@@ -34,8 +34,6 @@ class CouchDBBuilder extends AbstractManagerBuilder
 
     /**
      * {@inheritdoc}
-     *
-     * @return array
      */
     protected function getDefaultOptions()
     {
@@ -113,7 +111,7 @@ class CouchDBBuilder extends AbstractManagerBuilder
 
         $config->setMetadataCacheImpl($this->getMetadataCacheDriver());
 
-        if ($this->getLuceneHandlerName()) {
+        if ($this->getLuceneHandlerName() !== null) {
             $config->setLuceneHandlerName($this->getLuceneHandlerName());
         }
 

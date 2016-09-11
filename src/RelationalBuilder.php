@@ -78,8 +78,6 @@ class RelationalBuilder extends AbstractManagerBuilder
 
     /**
      * {@inheritdoc}
-     *
-     * @return array
      */
     protected function getDefaultOptions()
     {
@@ -179,7 +177,7 @@ class RelationalBuilder extends AbstractManagerBuilder
         $config->setQueryCacheImpl($this->getQueryCacheDriver());
         $config->setResultCacheImpl($this->getResultCacheDriver());
 
-        if ($this->getDefaultRepositoryClass()) {
+        if ($this->getDefaultRepositoryClass() !== null) {
             $config->setDefaultRepositoryClassName($this->getDefaultRepositoryClass());
         }
 

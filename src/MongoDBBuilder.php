@@ -43,8 +43,6 @@ class MongoDBBuilder extends AbstractManagerBuilder
 
     /**
      * {@inheritdoc}
-     *
-     * @return array
      */
     protected function getDefaultOptions()
     {
@@ -141,15 +139,15 @@ class MongoDBBuilder extends AbstractManagerBuilder
 
         $config->setMetadataCacheImpl($this->getMetadataCacheDriver());
 
-        if ($this->getDefaultRepositoryClass()) {
+        if ($this->getDefaultRepositoryClass() !== null) {
             $config->setDefaultRepositoryClassName($this->getDefaultRepositoryClass());
         }
 
-        if ($this->getDefaultDatabase()) {
+        if ($this->getDefaultDatabase() !== null) {
             $config->setDefaultDB($this->getDefaultDatabase());
         }
 
-        if ($this->getLoggerCallable()) {
+        if ($this->getLoggerCallable() !== null) {
             $config->setLoggerCallable($this->getLoggerCallable());
         }
 
