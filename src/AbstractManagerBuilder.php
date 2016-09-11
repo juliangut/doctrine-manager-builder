@@ -509,24 +509,33 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
     private function createNewCacheDriver($namespace)
     {
         // @codeCoverageIgnoreStart
-        if (extension_loaded('apc')) {
-            $cacheDriver = new ApcuCache;
-        } elseif (extension_loaded('xcache')) {
-            $cacheDriver = new XcacheCache;
-        } elseif (extension_loaded('memcache')) {
-            $memcache = new \Memcache;
-            $memcache->connect('127.0.0.1');
+        switch (true) {
+            case extension_loaded('apc'):
+                $cacheDriver = new ApcuCache;
+                break;
 
-            $cacheDriver = new MemcacheCache;
-            $cacheDriver->setMemcache($memcache);
-        } elseif (extension_loaded('redis')) {
-            $redis = new \Redis();
-            $redis->connect('127.0.0.1');
+            case extension_loaded('xcache'):
+                $cacheDriver = new XcacheCache;
+                break;
 
-            $cacheDriver = new RedisCache;
-            $cacheDriver->setRedis($redis);
-        } else {
-            $cacheDriver = new ArrayCache;
+            case extension_loaded('memcache'):
+                $memcache = new \Memcache;
+                $memcache->connect('127.0.0.1');
+
+                $cacheDriver = new MemcacheCache;
+                $cacheDriver->setMemcache($memcache);
+                break;
+
+            case extension_loaded('redis'):
+                $redis = new \Redis();
+                $redis->connect('127.0.0.1');
+
+                $cacheDriver = new RedisCache;
+                $cacheDriver->setRedis($redis);
+                break;
+
+            default:
+                $cacheDriver = new ArrayCache;
         }
         // @codeCoverageIgnoreEnd
 
