@@ -22,6 +22,12 @@ Frees you from the tedious work of configuring Doctrine's managers, ORM Entity M
 composer require juliangut/doctrine-manager-builder
 ```
 
+If using on PHP >= 7.0
+
+```
+composer require alcaeus/mongo-php-adapter
+```
+
 ## Usage
 
 ```php
