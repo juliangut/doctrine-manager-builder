@@ -105,7 +105,7 @@ class AbstractManagerBuilderTest extends \PHPUnit_Framework_TestCase
                 'getCacheDriver',
                 'setCacheDriver',
                 'getMetadataCacheDriver',
-                'setMetadataCacheDriver'
+                'setMetadataCacheDriver',
             ])
             ->getMockForAbstractClass();
 
@@ -116,14 +116,14 @@ class AbstractManagerBuilderTest extends \PHPUnit_Framework_TestCase
             ->expects(static::once())
             ->method('getNamespace')
             ->will(static::returnValue(''));
-        /** @var Cache $cacheDriver */
+        /* @var Cache $cacheDriver */
         $objectBuilder->setCacheDriver($cacheDriver);
 
         $objectBuilder->setOption('metadata_cache_driver', 'NotCacheDriver');
 
         self::assertEquals($cacheDriver, $objectBuilder->getMetadataCacheDriver());
 
-        /** @var Cache $metadataCacheDriver */
+        /* @var Cache $metadataCacheDriver */
         $metadataCacheDriver = $this->getMockBuilder(VoidCache::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -134,7 +134,7 @@ class AbstractManagerBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function testEventManager()
     {
-        /** @var AbstractManagerBuilder $objectBuilder */
+        /* @var AbstractManagerBuilder $objectBuilder */
         $objectBuilder = $this->getMockBuilder(AbstractManagerBuilder::class)
             ->disableOriginalConstructor()
             ->setMethodsExcept(['getEventManager', 'setEventManager'])
@@ -142,7 +142,7 @@ class AbstractManagerBuilderTest extends \PHPUnit_Framework_TestCase
 
         self::assertInstanceOf(EventManager::class, $objectBuilder->getEventManager());
 
-        /** @var EventManager $eventManager */
+        /* @var EventManager $eventManager */
         $eventManager = $this->getMockBuilder(EventManager::class)
             ->disableOriginalConstructor()
             ->getMock();

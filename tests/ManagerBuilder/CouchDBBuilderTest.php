@@ -9,10 +9,9 @@
 
 namespace Jgut\Doctrine\ManagerBuilder\Test;
 
-use Doctrine\MongoDB\Connection;
 use Doctrine\ODM\CouchDB\DocumentManager;
-use Jgut\Doctrine\ManagerBuilder\ManagerBuilder;
 use Jgut\Doctrine\ManagerBuilder\CouchDBBuilder;
+use Jgut\Doctrine\ManagerBuilder\ManagerBuilder;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\HelperSet;
 

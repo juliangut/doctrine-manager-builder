@@ -9,8 +9,8 @@
 
 namespace Jgut\Doctrine\ManagerBuilder\Test;
 
-use Jgut\Doctrine\ManagerBuilder\ConsoleBuilder;
 use Jgut\Doctrine\ManagerBuilder\AbstractManagerBuilder;
+use Jgut\Doctrine\ManagerBuilder\ConsoleBuilder;
 use Jgut\Doctrine\ManagerBuilder\RelationalBuilder;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Command\Command;
@@ -32,7 +32,7 @@ class ConsoleBuilderTest extends \PHPUnit_Framework_TestCase
             ->expects(self::once())
             ->method('getName')
             ->will(self::returnValue('command'));
-        /** @var AbstractManagerBuilder $builder */
+        /* @var AbstractManagerBuilder $builder */
 
         $consoleBuilder = new ConsoleBuilder();
         $consoleBuilder->addBuilder($builder);
@@ -59,7 +59,7 @@ class ConsoleBuilderTest extends \PHPUnit_Framework_TestCase
             ->expects(self::once())
             ->method('getConsoleHelperSet')
             ->will(self::returnValue(new HelperSet));
-        /** @var AbstractManagerBuilder $builder */
+        /* @var AbstractManagerBuilder $builder */
 
         $consoleBuilder = new ConsoleBuilder();
         $consoleBuilder->addBuilder($builder);

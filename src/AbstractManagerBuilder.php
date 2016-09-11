@@ -10,9 +10,9 @@
 namespace Jgut\Doctrine\ManagerBuilder;
 
 use Doctrine\Common\Annotations\AnnotationRegistry;
-use Doctrine\Common\Cache\Cache;
 use Doctrine\Common\Cache\ApcuCache;
 use Doctrine\Common\Cache\ArrayCache;
+use Doctrine\Common\Cache\Cache;
 use Doctrine\Common\Cache\MemcacheCache;
 use Doctrine\Common\Cache\RedisCache;
 use Doctrine\Common\Cache\XcacheCache;
