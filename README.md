@@ -24,17 +24,13 @@ composer require juliangut/doctrine-manager-builder
 
 ## Usage
 
-Require composer autoload file
-
-```php
-require './vendor/autoload.php';
-```
-
 ```php
 use Jgut\Doctrine\ManagerBuilder\CouchDBBuilder;
 use Jgut\Doctrine\ManagerBuilder\ManagerBuilder;
 use Jgut\Doctrine\ManagerBuilder\MongoDBBuilder;
 use Jgut\Doctrine\ManagerBuilder\RelationalBuilder;
+
+require __DIR__ . '/vendor/autoload.php';
 
 $rdbmsBuilder = new RelationalBuilder([
     'connection' => [
@@ -104,7 +100,7 @@ $couchDBDocumentManager = $couchDBBuilder->getManager();
 
 ### Relational ORM Entity Manager
 
-* `connection` **REQUIRED** array of PDO configurations or a \Doctrine\DBAL\Connection. [Supported drivers](http://php.net/manual/en/pdo.drivers.php)
+* `connection` **REQUIRED** array of PDO configurations or a \Doctrine\DBAL\Connection. See [supported drivers](http://php.net/manual/en/pdo.drivers.php)
 * `metadata_cache_driver` \Doctrine\Common\Cache\Cache metadata cache driver, defaults to `cache_driver`
 * `metadata_cache_namespace` string for metadata cache namespace
 * `query_cache_driver` \Doctrine\Common\Cache\Cache query cache driver, defaults to `cache_driver`
@@ -167,6 +163,8 @@ composer require ramsey/uuid-doctrine
 use Jgut\Doctrine\ManagerBuilder\RelationalBuilder;
 use Ramsey\Uuid\Doctrine\UuidType;
 
+require __DIR__ . '/vendor/autoload.php';
+
 $rdbmsBuilder = new RelationalBuilder([
     'connection' => [
         'driver' => 'pdo_sqlite',
@@ -198,6 +196,8 @@ use Gedmo\Sluggable\SluggableListener;
 use Gedmo\Timestampable\TimestampableListener;
 use Jgut\Doctrine\ManagerBuilder\RelationalBuilder;
 
+require __DIR__ . '/vendor/autoload.php';
+
 $rdbmsBuilder = new RelationalBuilder([
     'connection' => [
         'driver' => 'pdo_sqlite',
@@ -225,17 +225,17 @@ $entityManager = $rdbmsBuilder->getManager();
 
 ## Console integration
 
-Although Doctrine ORM comes with a great CLI tool this library is intended to be used without ORM, and thus a new tool has been created instead of forcing to use ORM.
+Although Doctrine ORM comes with a great CLI tool this library is intended to be used without ORM, and thus a new tool has been created instead of forcing to require Doctrine ORM.
 
 This new CLI tool (doctrine-manager) is more powerful in the sense that it runs the same commands for different databases (managers) of the same kind by providing \Jgut\Doctrine\ManagerBuilder\ConsoleBuilder with named builders.
 
 The configuration of `doctrine-manager` tool resembles the one ORM comes with and so you must have a 'cli-config.php' or ' config/cli-config.php' file 
 
 ```php
-require __DIR__ . '/vendor/autoload.php';
-
 use Jgut\Doctrine\ManagerBuilder\ConsoleBuilder;
 use Jgut\Doctrine\ManagerBuilder\RelationalBuilder;
+
+require __DIR__ . '/vendor/autoload.php';
 
 $settings = require 'managers-configurations.php';
 
