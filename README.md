@@ -25,18 +25,16 @@ composer require juliangut/doctrine-manager-builder
 If using on PHP >= 7.0
 
 ```
-composer require alcaeus/mongo-php-adapter
+composer require alcaeus/mongo-php-adapter --ignore-platform-reqs
 ```
 
 ## Usage
 
-```php
-use Jgut\Doctrine\ManagerBuilder\CouchDBBuilder;
-use Jgut\Doctrine\ManagerBuilder\ManagerBuilder;
-use Jgut\Doctrine\ManagerBuilder\MongoDBBuilder;
-use Jgut\Doctrine\ManagerBuilder\RelationalBuilder;
+### Relational Database Entity Manager
 
-require __DIR__ . '/vendor/autoload.php';
+```php
+use Jgut\Doctrine\ManagerBuilder\ManagerBuilder;
+use Jgut\Doctrine\ManagerBuilder\RelationalBuilder;
 
 $rdbmsBuilder = new RelationalBuilder([
     'connection' => [
@@ -51,6 +49,13 @@ $rdbmsBuilder = new RelationalBuilder([
     ],
 ]);
 $entityManager = $rdbmsBuilder->getManager();
+```
+
+### MongoDB Document Manager
+
+```php
+use Jgut\Doctrine\ManagerBuilder\ManagerBuilder;
+use Jgut\Doctrine\ManagerBuilder\MongoDBBuilder;
 
 $mongoDBBuilder = new MongoDBBuilder([
     'connection' => [
@@ -71,7 +76,14 @@ $mongoDBBuilder = new MongoDBBuilder([
         ],
     ],
 ]);
-$mongoDBDocumentManager = $mongoDBBuilder->getManager();
+$documentManager = $mongoDBBuilder->getManager();
+```
+
+### CouchDB Document Manager
+
+```php
+use Jgut\Doctrine\ManagerBuilder\CouchDBBuilder;
+use Jgut\Doctrine\ManagerBuilder\MongoDBBuilder;
 
 $couchDBBuilder = new CouchDBBuilder([
     'connection' => [
@@ -86,12 +98,14 @@ $couchDBBuilder = new CouchDBBuilder([
         ],
     ],
 ]);
-$couchDBDocumentManager = $couchDBBuilder->getManager();
+$documentManager = $couchDBBuilder->getManager();
 ```
+
+**Mind that Doctrine CouchDB ODM support is not as good/wide as in Doctrine ORM or Doctrine MongoDB ODM**
 
 ## Configuration
 
-## Common
+### Common
 
 * `metadata_mapping` **REQUIRED** array of metadata mapping drivers or configurations to create them, _see note below_
 * `annotation_files` array of Doctrine annotations files
