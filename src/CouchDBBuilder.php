@@ -186,10 +186,9 @@ class CouchDBBuilder extends AbstractManagerBuilder
         ];
         $commandPrefix = (string) $this->getName();
 
-        // Rename commands
-        return array_map(
-            function (Command $command) use ($commandPrefix) {
-                if ($commandPrefix !== '') {
+        if ($commandPrefix !== '') {
+            $commands = array_map(
+                function (Command $command) use ($commandPrefix) {
                     $command->setName(preg_replace('/^couchdb:/', $commandPrefix . ':', $command->getName()));
 
                     $aliases = [];
@@ -199,12 +198,14 @@ class CouchDBBuilder extends AbstractManagerBuilder
                     }
                     // @codeCoverageIgnoreEnd
                     $command->setAliases($aliases);
-                }
 
-                return $command;
-            },
-            $commands
-        );
+                    return $command;
+                },
+                $commands
+            );
+        }
+
+        return $commands;
     }
 
     /**

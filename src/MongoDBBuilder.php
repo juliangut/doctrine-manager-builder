@@ -343,10 +343,9 @@ class MongoDBBuilder extends AbstractManagerBuilder
         ];
         $commandPrefix = (string) $this->getName();
 
-        // Rename commands
-        return array_map(
-            function (Command $command) use ($commandPrefix) {
-                if ($commandPrefix !== '') {
+        if ($commandPrefix !== '') {
+            $commands = array_map(
+                function (Command $command) use ($commandPrefix) {
                     $command->setName(preg_replace('/^odm:/', $commandPrefix . ':odm:', $command->getName()));
 
                     $aliases = [];
@@ -356,12 +355,14 @@ class MongoDBBuilder extends AbstractManagerBuilder
                     }
                     // @codeCoverageIgnoreEnd
                     $command->setAliases($aliases);
-                }
 
-                return $command;
-            },
-            $commands
-        );
+                    return $command;
+                },
+                $commands
+            );
+        }
+
+        return $commands;
     }
 
     /**
