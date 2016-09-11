@@ -346,26 +346,19 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
     {
         switch ($type) {
             case ManagerBuilder::METADATA_MAPPING_ANNOTATION:
-                $metadataDriver = $this->getAnnotationMetadataDriver($paths);
-                break;
+                return $this->getAnnotationMetadataDriver($paths);
 
             case ManagerBuilder::METADATA_MAPPING_XML:
-                $metadataDriver = $this->getXmlMetadataDriver($paths, $extension);
-                break;
+                return $this->getXmlMetadataDriver($paths, $extension);
 
             case ManagerBuilder::METADATA_MAPPING_YAML:
-                $metadataDriver = $this->getYamlMetadataDriver($paths, $extension);
-                break;
+                return $this->getYamlMetadataDriver($paths, $extension);
 
             case ManagerBuilder::METADATA_MAPPING_PHP:
-                $metadataDriver = new PHPDriver($paths);
-                break;
-
-            default:
-                throw new \UnexpectedValueException(sprintf('"%s" is not a valid metadata mapping type', $type));
+                return new PHPDriver($paths);
         }
 
-        return $metadataDriver;
+        throw new \UnexpectedValueException(sprintf('"%s" is not a valid metadata mapping type', $type));
     }
 
     /**
