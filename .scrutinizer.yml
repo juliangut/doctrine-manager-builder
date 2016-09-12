@@ -4,6 +4,7 @@ filter:
   paths:
     - src/*
     - tests/*
+    - bin/*
 
 coding_style:
   php:
