@@ -497,13 +497,15 @@ class RelationalBuilder extends AbstractManagerBuilder
         if ($commandPrefix !== '') {
             $commands = array_map(
                 function (Command $command) use ($commandPrefix) {
-                    $command->setName(preg_replace('/^(dbal|orm):/', $commandPrefix . ':$1:', $command->getName()));
+                    $commandNames = array_map(
+                        function ($commandName) use ($commandPrefix) {
+                            return preg_replace('/^(dbal|orm):/', $commandPrefix . ':$1:', $commandName);
+                        },
+                        array_merge([$command->getName()], $command->getAliases())
+                    );
 
-                    $aliases = [];
-                    foreach ($command->getAliases() as $alias) {
-                        $aliases[] = preg_replace('/^(dbal|orm):/', $commandPrefix . ':$1:', $alias);
-                    }
-                    $command->setAliases($aliases);
+                    $command->setName(array_shift($commandNames));
+                    $command->setAliases($commandNames);
 
                     return $command;
                 },

@@ -346,15 +346,15 @@ class MongoDBBuilder extends AbstractManagerBuilder
         if ($commandPrefix !== '') {
             $commands = array_map(
                 function (Command $command) use ($commandPrefix) {
-                    $command->setName(preg_replace('/^odm:/', $commandPrefix . ':odm:', $command->getName()));
+                    $commandNames = array_map(
+                        function ($commandName) use ($commandPrefix) {
+                            return preg_replace('/^odm:/', $commandPrefix . ':odm:', $commandName);
+                        },
+                        array_merge([$command->getName()], $command->getAliases())
+                    );
 
-                    $aliases = [];
-                    // @codeCoverageIgnoreStart
-                    foreach ($command->getAliases() as $alias) {
-                        $aliases[] = preg_replace('/^odm:/', $commandPrefix . ':$1:', $alias);
-                    }
-                    // @codeCoverageIgnoreEnd
-                    $command->setAliases($aliases);
+                    $command->setName(array_shift($commandNames));
+                    $command->setAliases($commandNames);
 
                     return $command;
                 },

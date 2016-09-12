@@ -189,15 +189,15 @@ class CouchDBBuilder extends AbstractManagerBuilder
         if ($commandPrefix !== '') {
             $commands = array_map(
                 function (Command $command) use ($commandPrefix) {
-                    $command->setName(preg_replace('/^couchdb:/', $commandPrefix . ':', $command->getName()));
+                    $commandNames = array_map(
+                        function ($commandName) use ($commandPrefix) {
+                            return preg_replace('/^couchdb:/', $commandPrefix . ':', $commandName);
+                        },
+                        array_merge([$command->getName()], $command->getAliases())
+                    );
 
-                    $aliases = [];
-                    // @codeCoverageIgnoreStart
-                    foreach ($command->getAliases() as $alias) {
-                        $aliases[] = preg_replace('/^couchdb:/', $commandPrefix . ':$1:', $alias);
-                    }
-                    // @codeCoverageIgnoreEnd
-                    $command->setAliases($aliases);
+                    $command->setName(array_shift($commandNames));
+                    $command->setAliases($commandNames);
 
                     return $command;
                 },
