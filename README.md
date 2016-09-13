@@ -115,14 +115,13 @@ $documentManager = $couchDBBuilder->getManager();
 * `proxies_namespace` string for proxies namespace
 * `proxies_auto_generation` integer indicating proxy auto generation behavior
 * `cache_driver` \Doctrine\Common\Cache\Cache default cache driver
-* `cache_namespace` string for default cache namespace
+* `metadata_cache_driver` \Doctrine\Common\Cache\Cache metadata cache driver, defaults to `cache_driver`
+* `metadata_cache_namespace` string for metadata cache namespace
 * `event_manager` a configured `Doctrine\Common\EventManager`
 
 ### Relational ORM Entity Manager
 
 * `connection` **REQUIRED** array of PDO configurations or a \Doctrine\DBAL\Connection. See [supported drivers](http://php.net/manual/en/pdo.drivers.php)
-* `metadata_cache_driver` \Doctrine\Common\Cache\Cache metadata cache driver, defaults to `cache_driver`
-* `metadata_cache_namespace` string for metadata cache namespace
 * `query_cache_driver` \Doctrine\Common\Cache\Cache query cache driver, defaults to `cache_driver`
 * `query_cache_namespace` string for query cache namespace
 * `result_cache_driver` \Doctrine\Common\Cache\Cache result cache driver, defaults to `cache_driver`
@@ -139,8 +138,6 @@ $documentManager = $couchDBBuilder->getManager();
 ### MongoDB ODM Document Manager
 
 * `connection` **REQUIRED** array of \MongoClient configurations (server and options) or a \Doctrine\MongoDB\Connection
-* `metadata_cache_driver` \Doctrine\Common\Cache\Cache metadata cache driver, defaults to `cache_driver`
-* `metadata_cache_namespace` string for metadata cache namespace
 * `hydrators_path` path where Doctrine creates its hydrator classes, defaults to /tmp
 * `hydrators_namespace` string for hydrators namespace, defaults to 'DoctrineODMHydrator'
 * `hydrators_auto_generation` integer indicating hydrators auto generation behavior

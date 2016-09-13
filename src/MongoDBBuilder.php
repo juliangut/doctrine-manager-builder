@@ -47,20 +47,10 @@ class MongoDBBuilder extends AbstractManagerBuilder
     protected function getDefaultOptions()
     {
         return [
-            //'connection' => null, // Array or \Doctrine\MongoDB\Connection
-            //'annotation_files' => [],
-            //'annotation_namespaces' => [],
-            //'annotation_autoloaders' => [],
-            //'metadata_mapping' => [],
-            //'proxies_path' => null,
+            'connection' => [], // Array or \Doctrine\MongoDB\Connection
             'proxies_namespace' => 'DoctrineMongoDBODMProxy',
-            'proxies_auto_generation' => AbstractProxyFactory::AUTOGENERATE_NEVER,
-            //'cache_driver' => null,
-            'cache_namespace' => 'DoctrineMongoDBODMCache',
-            //'metadata_cache_driver' => null,
             'metadata_cache_namespace' => 'DoctrineMongoDBODMMetadataCache',
             'default_repository_class' => DocumentRepository::class,
-            //'event_manager' => null,
             //'hydrators_path' => null,
             'hydrators_namespace' => 'DoctrineMongoDBODMHydrator',
             'hydrators_auto_generation' => AbstractProxyFactory::AUTOGENERATE_NEVER,

@@ -39,6 +39,7 @@ class MongoDBBuilderTest extends \PHPUnit_Framework_TestCase
      */
     public function testManagerNoConnection()
     {
+        $this->builder->setOption('connection', null);
         $this->builder->setOption(
             'metadata_mapping',
             [

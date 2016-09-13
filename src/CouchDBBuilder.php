@@ -10,7 +10,6 @@
 namespace Jgut\Doctrine\ManagerBuilder;
 
 use Doctrine\Common\Annotations\AnnotationReader;
-use Doctrine\Common\Proxy\AbstractProxyFactory;
 use Doctrine\CouchDB\Tools\Console\Helper\CouchDBHelper;
 use Doctrine\ODM\CouchDB\Configuration;
 use Doctrine\ODM\CouchDB\DocumentManager;
@@ -39,18 +38,8 @@ class CouchDBBuilder extends AbstractManagerBuilder
     {
         return [
             'connection' => [], // Array or \Doctrine\CouchDB\CouchDBClient
-            //'annotation_files' => [],
-            //'annotation_namespaces' => [],
-            //'annotation_autoloaders' => [],
-            //'metadata_mapping' => [],
-            //'proxies_path' => null,
             'proxies_namespace' => 'DoctrineCouchDBODMProxy',
-            'proxies_auto_generation' => AbstractProxyFactory::AUTOGENERATE_NEVER,
-            //'cache_driver' => null,
-            'cache_namespace' => 'DoctrineCouchDBODMCache',
-            //'metadata_cache_driver' => null,
             'metadata_cache_namespace' => 'DoctrineCouchDBODMMetadataCache',
-            //'event_manager' => null,
             //'lucene_handler_name' => null,
         ];
     }

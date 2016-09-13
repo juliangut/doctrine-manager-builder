@@ -11,7 +11,6 @@ namespace Jgut\Doctrine\ManagerBuilder;
 
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\Cache\Cache;
-use Doctrine\Common\Proxy\AbstractProxyFactory;
 use Doctrine\DBAL\Logging\SQLLogger;
 use Doctrine\DBAL\Tools\Console\Helper\ConnectionHelper;
 use Doctrine\DBAL\Types\Type;
@@ -83,23 +82,13 @@ class RelationalBuilder extends AbstractManagerBuilder
     {
         return [
             'connection' => [], // Array or \Doctrine\DBAL\Connection
-            //'annotation_files' => [],
-            //'annotation_namespaces' => [],
-            //'annotation_autoloaders' => [],
-            //'metadata_mapping' => [],
-            //'proxies_path' => null,
             'proxies_namespace' => 'DoctrineRDBMSORMProxy',
-            'proxies_auto_generation' => AbstractProxyFactory::AUTOGENERATE_NEVER,
-            //'cache_driver' => null,
-            'cache_namespace' => 'DoctrineRDBMSORMCache',
-            //'metadata_cache_driver' => null,
             'metadata_cache_namespace' => 'DoctrineRDBMSORMMetadataCache',
             //'query_cache_driver' => null,
             'query_cache_namespace' => 'DoctrineRDBMSORMQueryCache',
             //'result_cache_driver' => null,
             'result_cache_namespace' => 'DoctrineRDBMSORMResultCache',
             'default_repository_class' => EntityRepository::class,
-            //'event_manager' => null,
             //'naming_strategy' => null, // Doctrine\ORM\Mapping\UnderscoreNamingStrategy(CASE_LOWER)
             //'quote_strategy' => null, // Doctrine\ORM\Mapping\DefaultQuoteStrategy
             //'sql_logger' => null,
@@ -243,11 +232,11 @@ class RelationalBuilder extends AbstractManagerBuilder
             $queryCacheDriver = $this->getOption('query_cache_driver');
 
             if (!$queryCacheDriver instanceof Cache) {
-                $queryCacheDriver = $this->getCacheDriver();
+                $queryCacheDriver = clone $this->getCacheDriver();
             }
 
             if ($queryCacheDriver->getNamespace() === '') {
-                $queryCacheDriver->setNamespace($this->getQueryCacheNamespace());
+                $queryCacheDriver->setNamespace((string) $this->getOption('query_cache_namespace'));
             }
 
             $this->queryCacheDriver = $queryCacheDriver;
@@ -267,16 +256,6 @@ class RelationalBuilder extends AbstractManagerBuilder
     }
 
     /**
-     * Retrieve query cache namespace.
-     *
-     * @return string
-     */
-    protected function getQueryCacheNamespace()
-    {
-        return (string) $this->getOption('query_cache_namespace', $this->getCacheDriverNamespace());
-    }
-
-    /**
      * Retrieve result cache driver.
      *
      * @throws \InvalidArgumentException
@@ -289,11 +268,11 @@ class RelationalBuilder extends AbstractManagerBuilder
             $resultCacheDriver = $this->getOption('result_cache_driver');
 
             if (!$resultCacheDriver instanceof Cache) {
-                $resultCacheDriver = $this->getCacheDriver();
+                $resultCacheDriver = clone $this->getCacheDriver();
             }
 
             if ($resultCacheDriver->getNamespace() === '') {
-                $resultCacheDriver->setNamespace($this->getResultCacheNamespace());
+                $resultCacheDriver->setNamespace((string) $this->getOption('result_cache_namespace'));
             }
 
             $this->resultCacheDriver = $resultCacheDriver;
@@ -310,16 +289,6 @@ class RelationalBuilder extends AbstractManagerBuilder
     public function setResultCacheDriver(Cache $resultCacheDriver)
     {
         $this->resultCacheDriver = $resultCacheDriver;
-    }
-
-    /**
-     * Retrieve result cache namespace.
-     *
-     * @return string
-     */
-    protected function getResultCacheNamespace()
-    {
-        return (string) $this->getOption('result_cache_namespace', $this->getCacheDriverNamespace());
     }
 
     /**

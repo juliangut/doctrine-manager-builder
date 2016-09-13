@@ -21,12 +21,33 @@ use Doctrine\Common\EventManager;
 use Doctrine\Common\Persistence\Mapping\Driver\MappingDriver;
 use Doctrine\Common\Persistence\Mapping\Driver\MappingDriverChain;
 use Doctrine\Common\Persistence\Mapping\Driver\PHPDriver;
+use Doctrine\Common\Proxy\AbstractProxyFactory;
 
 /**
  * Abstract Doctrine Manager builder.
  */
 abstract class AbstractManagerBuilder implements ManagerBuilder
 {
+    /**
+     * Manager builder's common default options.
+     *
+     * @var array
+     */
+    private $defaultOptions = [
+        //'connection' => [],
+        //'annotation_files' => [],
+        //'annotation_namespaces' => [],
+        //'annotation_autoloaders' => [],
+        //'metadata_mapping' => [],
+        //'proxies_path' => null,
+        //'proxies_namespace' => '',
+        'proxies_auto_generation' => AbstractProxyFactory::AUTOGENERATE_NEVER,
+        //'cache_driver' => null,
+        //'metadata_cache_driver' => null,
+        //'metadata_cache_namespace' => '',
+        //'event_manager' => null,
+    ];
+
     /**
      * Builder name.
      *
@@ -84,9 +105,16 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
      */
     public function __construct(array $options = [], $name = null)
     {
-        $this->setOptions(array_merge($this->getDefaultOptions(), $options));
+        $this->setOptions(array_merge($this->defaultOptions, $this->getDefaultOptions(), $options));
         $this->setName($name);
     }
+
+    /**
+     * Get manager builder's default options.
+     *
+     * @return array
+     */
+    abstract protected function getDefaultOptions();
 
     /**
      * Unset created objects for rebuild.
@@ -123,13 +151,6 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
 
         return $this;
     }
-
-    /**
-     * Get default options.
-     *
-     * @return array
-     */
-    abstract protected function getDefaultOptions();
 
     /**
      * Retrieve builder options.
@@ -316,7 +337,9 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
             }
 
             return $mappingDriver;
-        } elseif (array_key_exists('type', $metadataMapping) && array_key_exists('path', $metadataMapping)) {
+        }
+
+        if (count(array_intersect(['type', 'path'], array_keys($metadataMapping))) === 2) {
             $metadataMapping = array_merge(['extension' => null], $metadataMapping);
 
             switch ($metadataMapping['type']) {
@@ -330,7 +353,7 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
                     return $this->getYamlMetadataDriver((array) $metadataMapping['path'], $metadataMapping['extension']);
 
                 case ManagerBuilder::METADATA_MAPPING_PHP:
-                    return new PHPDriver((array) $metadataMapping['path']);
+                    return $this->getPhpMetadataDriver((array) $metadataMapping['path']);
             }
 
             throw new \UnexpectedValueException(
@@ -371,6 +394,18 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
      * @return MappingDriver
      */
     abstract protected function getYamlMetadataDriver(array $paths, $extension = null);
+
+    /**
+     * Get PHP metadata driver.
+     *
+     * @param array $paths
+     *
+     * @return PHPDriver
+     */
+    protected function getPhpMetadataDriver(array $paths)
+    {
+        return new PHPDriver($paths);
+    }
 
     /**
      * Retrieve proxies path.
@@ -417,12 +452,11 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
             $metadataCacheDriver = $this->getOption('metadata_cache_driver');
 
             if (!$metadataCacheDriver instanceof Cache) {
-                $metadataCacheDriver = $this->getCacheDriver();
-                $metadataCacheDriver->setNamespace($this->getMetadataCacheNamespace());
+                $metadataCacheDriver = clone $this->getCacheDriver();
             }
 
             if ($metadataCacheDriver->getNamespace() === '') {
-                $metadataCacheDriver->setNamespace($this->getMetadataCacheNamespace());
+                $metadataCacheDriver->setNamespace((string) $this->getOption('metadata_cache_namespace'));
             }
 
             $this->metadataCacheDriver = $metadataCacheDriver;
@@ -442,16 +476,6 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
     }
 
     /**
-     * Retrieve metadata cache namespace.
-     *
-     * @return string
-     */
-    protected function getMetadataCacheNamespace()
-    {
-        return (string) $this->getOption('metadata_cache_namespace', $this->getCacheDriverNamespace());
-    }
-
-    /**
      * Retrieve general cache driver.
      *
      * @throws \InvalidArgumentException
@@ -461,19 +485,14 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
     public function getCacheDriver()
     {
         if (!$this->cacheDriver instanceof Cache) {
-            $cacheNamespace = $this->getCacheDriverNamespace();
             $cacheDriver = $this->getOption('cache_driver');
 
             if ($cacheDriver === null) {
-                $cacheDriver = $this->createNewCacheDriver($cacheNamespace);
+                $cacheDriver = $this->createNewCacheDriver();
             }
 
             if (!$cacheDriver instanceof Cache) {
                 throw new \InvalidArgumentException('Cache Driver provided is not valid');
-            }
-
-            if ($cacheDriver->getNamespace() === '') {
-                $cacheDriver->setNamespace($cacheNamespace);
             }
 
             $this->cacheDriver = $cacheDriver;
@@ -485,11 +504,9 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
     /**
      * Retrieve a newly created cache driver.
      *
-     * @param string $namespace
-     *
      * @return ApcuCache|ArrayCache|MemcacheCache|RedisCache|XcacheCache
      */
-    private function createNewCacheDriver($namespace)
+    private function createNewCacheDriver()
     {
         // @codeCoverageIgnoreStart
         switch (true) {
@@ -522,8 +539,6 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
         }
         // @codeCoverageIgnoreEnd
 
-        $cacheDriver->setNamespace($namespace);
-
         return $cacheDriver;
     }
 
@@ -535,16 +550,6 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
     public function setCacheDriver(Cache $cacheDriver)
     {
         $this->cacheDriver = $cacheDriver;
-    }
-
-    /**
-     * Retrieve general cache driver namespace.
-     *
-     * @return string
-     */
-    protected function getCacheDriverNamespace()
-    {
-        return (string) $this->getOption('cache_driver_namespace', 'dc2_' . sha1(sys_get_temp_dir()) . '_');
     }
 
     /**
