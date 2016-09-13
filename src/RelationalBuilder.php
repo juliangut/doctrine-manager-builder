@@ -88,16 +88,16 @@ class RelationalBuilder extends AbstractManagerBuilder
             //'annotation_autoloaders' => [],
             //'metadata_mapping' => [],
             //'proxies_path' => null,
-            'proxies_namespace' => 'DoctrineRelationalORMProxy',
+            'proxies_namespace' => 'DoctrineRDBMSORMProxy',
             'proxies_auto_generation' => AbstractProxyFactory::AUTOGENERATE_NEVER,
             //'cache_driver' => null,
-            'cache_namespace' => 'dc2_rdbms_cache_',
+            'cache_namespace' => 'DoctrineRDBMSORMCache',
             //'metadata_cache_driver' => null,
-            'metadata_cache_namespace' => 'dc2_rdbms_metadata_cache_',
+            'metadata_cache_namespace' => 'DoctrineRDBMSORMMetadataCache',
             //'query_cache_driver' => null,
-            'query_cache_namespace' => 'dc2_rdbms_query_cache_',
+            'query_cache_namespace' => 'DoctrineRDBMSORMQueryCache',
             //'result_cache_driver' => null,
-            'result_cache_namespace' => 'dc2_rdbms_result_cache_',
+            'result_cache_namespace' => 'DoctrineRDBMSORMResultCache',
             'default_repository_class' => EntityRepository::class,
             //'event_manager' => null,
             //'naming_strategy' => null, // Doctrine\ORM\Mapping\UnderscoreNamingStrategy(CASE_LOWER)
@@ -320,6 +320,18 @@ class RelationalBuilder extends AbstractManagerBuilder
     protected function getResultCacheNamespace()
     {
         return (string) $this->getOption('result_cache_namespace', $this->getCacheDriverNamespace());
+    }
+
+    /**
+     * Get default repository class name
+     *
+     * @return string|null
+     */
+    protected function getDefaultRepositoryClass()
+    {
+        return array_key_exists('default_repository_class', $this->options)
+            ? (string) $this->options['default_repository_class']
+            : null;
     }
 
     /**

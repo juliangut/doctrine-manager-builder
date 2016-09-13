@@ -56,9 +56,9 @@ class MongoDBBuilder extends AbstractManagerBuilder
             'proxies_namespace' => 'DoctrineMongoDBODMProxy',
             'proxies_auto_generation' => AbstractProxyFactory::AUTOGENERATE_NEVER,
             //'cache_driver' => null,
-            'cache_namespace' => 'dc2_mongodb_cache_',
+            'cache_namespace' => 'DoctrineMongoDBODMCache',
             //'metadata_cache_driver' => null,
-            'metadata_cache_namespace' => 'dc2_mongodb_metadata_cache_',
+            'metadata_cache_namespace' => 'DoctrineMongoDBODMMetadataCache',
             'default_repository_class' => DocumentRepository::class,
             //'event_manager' => null,
             //'hydrators_path' => null,
@@ -285,6 +285,18 @@ class MongoDBBuilder extends AbstractManagerBuilder
     protected function getAutoGeneratePersistentCollection()
     {
         return (int) $this->getOption('auto_generate_persistent_collections');
+    }
+
+    /**
+     * Get default repository class name
+     *
+     * @return string|null
+     */
+    protected function getDefaultRepositoryClass()
+    {
+        return array_key_exists('default_repository_class', $this->options)
+            ? (string) $this->options['default_repository_class']
+            : null;
     }
 
     /**

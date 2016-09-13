@@ -30,7 +30,7 @@ class AbstractManagerBuilderTest extends \PHPUnit_Framework_TestCase
 
         $objectBuilder->setName('Object_Builder');
 
-        self::assertEquals('object_builder', $objectBuilder->getName());
+        self::assertEquals('Object_Builder', $objectBuilder->getName());
     }
 
     public function testOptions()

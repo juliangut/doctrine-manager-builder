@@ -47,9 +47,9 @@ class CouchDBBuilder extends AbstractManagerBuilder
             'proxies_namespace' => 'DoctrineCouchDBODMProxy',
             'proxies_auto_generation' => AbstractProxyFactory::AUTOGENERATE_NEVER,
             //'cache_driver' => null,
-            'cache_namespace' => 'dc2_couchdb_cache_',
+            'cache_namespace' => 'DoctrineCouchDBODMCache',
             //'metadata_cache_driver' => null,
-            'metadata_cache_namespace' => 'dc2_couchdb_metadata_cache_',
+            'metadata_cache_namespace' => 'DoctrineCouchDBODMMetadataCache',
             //'event_manager' => null,
             //'lucene_handler_name' => null,
         ];

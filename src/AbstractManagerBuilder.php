@@ -13,6 +13,7 @@ use Doctrine\Common\Annotations\AnnotationRegistry;
 use Doctrine\Common\Cache\ApcuCache;
 use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\Common\Cache\Cache;
+use Doctrine\Common\Cache\CacheProvider;
 use Doctrine\Common\Cache\MemcacheCache;
 use Doctrine\Common\Cache\RedisCache;
 use Doctrine\Common\Cache\XcacheCache;
@@ -84,10 +85,7 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
     public function __construct(array $options = [], $name = null)
     {
         $this->setOptions(array_merge($this->getDefaultOptions(), $options));
-
-        if (is_string($name)) {
-            $this->setName($name);
-        }
+        $this->setName($name);
     }
 
     /**
@@ -105,7 +103,7 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
     /**
      * {@inheritdoc}
      *
-     * @return string
+     * @return string|null
      */
     public function getName()
     {
@@ -115,13 +113,13 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
     /**
      * Set builder's name.
      *
-     * @param string $name
+     * @param string|null $name
      *
      * @return $this
      */
-    public function setName($name)
+    public function setName($name = null)
     {
-        $this->name = strtolower(trim($name));
+        $this->name = $name;
 
         return $this;
     }
@@ -319,46 +317,30 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
 
             return $mappingDriver;
         } elseif (array_key_exists('type', $metadataMapping) && array_key_exists('path', $metadataMapping)) {
-            return $this->getMetadataDriver(
-                $metadataMapping['type'],
-                (array) $metadataMapping['path'],
-                array_key_exists('extension', $metadataMapping) ? $metadataMapping['extension'] : null
+            $metadataMapping = array_merge(['extension' => null], $metadataMapping);
+
+            switch ($metadataMapping['type']) {
+                case ManagerBuilder::METADATA_MAPPING_ANNOTATION:
+                    return $this->getAnnotationMetadataDriver((array) $metadataMapping['path']);
+
+                case ManagerBuilder::METADATA_MAPPING_XML:
+                    return $this->getXmlMetadataDriver((array) $metadataMapping['path'], $metadataMapping['extension']);
+
+                case ManagerBuilder::METADATA_MAPPING_YAML:
+                    return $this->getYamlMetadataDriver((array) $metadataMapping['path'], $metadataMapping['extension']);
+
+                case ManagerBuilder::METADATA_MAPPING_PHP:
+                    return new PHPDriver((array) $metadataMapping['path']);
+            }
+
+            throw new \UnexpectedValueException(
+                sprintf('"%s" is not a valid metadata mapping type', $metadataMapping['type'])
             );
         }
 
         throw new \UnexpectedValueException(
             'metadata_mapping must be array with "driver" key or "type" and "path" keys'
         );
-    }
-
-    /**
-     * Retrieve metadata driver implementation.
-     *
-     * @param string      $type
-     * @param array       $paths
-     * @param string|null $extension
-     *
-     * @throws \UnexpectedValueException
-     *
-     * @return MappingDriver
-     */
-    protected function getMetadataDriver($type, array $paths, $extension = null)
-    {
-        switch ($type) {
-            case ManagerBuilder::METADATA_MAPPING_ANNOTATION:
-                return $this->getAnnotationMetadataDriver($paths);
-
-            case ManagerBuilder::METADATA_MAPPING_XML:
-                return $this->getXmlMetadataDriver($paths, $extension);
-
-            case ManagerBuilder::METADATA_MAPPING_YAML:
-                return $this->getYamlMetadataDriver($paths, $extension);
-
-            case ManagerBuilder::METADATA_MAPPING_PHP:
-                return new PHPDriver($paths);
-        }
-
-        throw new \UnexpectedValueException(sprintf('"%s" is not a valid metadata mapping type', $type));
     }
 
     /**
@@ -436,6 +418,7 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
 
             if (!$metadataCacheDriver instanceof Cache) {
                 $metadataCacheDriver = $this->getCacheDriver();
+                $metadataCacheDriver->setNamespace($this->getMetadataCacheNamespace());
             }
 
             if ($metadataCacheDriver->getNamespace() === '') {
@@ -473,7 +456,7 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
      *
      * @throws \InvalidArgumentException
      *
-     * @return Cache
+     * @return CacheProvider
      */
     public function getCacheDriver()
     {
@@ -562,18 +545,6 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
     protected function getCacheDriverNamespace()
     {
         return (string) $this->getOption('cache_driver_namespace', 'dc2_' . sha1(sys_get_temp_dir()) . '_');
-    }
-
-    /**
-     * Get default repository class name
-     *
-     * @return string|null
-     */
-    protected function getDefaultRepositoryClass()
-    {
-        return array_key_exists('default_repository_class', $this->options)
-            ? (string) $this->options['default_repository_class']
-            : null;
     }
 
     /**
