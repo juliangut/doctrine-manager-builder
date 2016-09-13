@@ -342,18 +342,21 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
         if (count(array_intersect(['type', 'path'], array_keys($metadataMapping))) === 2) {
             $metadataMapping = array_merge(['extension' => null], $metadataMapping);
 
+            $paths = (array) $metadataMapping['path'];
+            $extension = $metadataMapping['extension'];
+
             switch ($metadataMapping['type']) {
                 case ManagerBuilder::METADATA_MAPPING_ANNOTATION:
-                    return $this->getAnnotationMetadataDriver((array) $metadataMapping['path']);
+                    return $this->getAnnotationMetadataDriver($paths);
 
                 case ManagerBuilder::METADATA_MAPPING_XML:
-                    return $this->getXmlMetadataDriver((array) $metadataMapping['path'], $metadataMapping['extension']);
+                    return $this->getXmlMetadataDriver($paths, $extension);
 
                 case ManagerBuilder::METADATA_MAPPING_YAML:
-                    return $this->getYamlMetadataDriver((array) $metadataMapping['path'], $metadataMapping['extension']);
+                    return $this->getYamlMetadataDriver($paths, $extension);
 
                 case ManagerBuilder::METADATA_MAPPING_PHP:
-                    return $this->getPhpMetadataDriver((array) $metadataMapping['path']);
+                    return $this->getPhpMetadataDriver($paths);
             }
 
             throw new \UnexpectedValueException(
