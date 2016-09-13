@@ -9,8 +9,6 @@
 
 namespace Jgut\Doctrine\ManagerBuilder;
 
-use Symfony\Component\Console\Helper\HelperSet;
-
 /**
  * Doctrine Manager builder interface.
  */
@@ -48,7 +46,7 @@ interface ManagerBuilder
     /**
      * Get console helper set.
      *
-     * @return HelperSet
+     * @return \Symfony\Component\Console\Helper\HelperSet
      */
     public function getConsoleHelperSet();
 }
