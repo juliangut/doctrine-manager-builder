@@ -7,7 +7,7 @@
  * @author Julián Gutiérrez <juliangut@gmail.com>
  */
 
-namespace Jgut\Doctrine\ManagerBuilder\Test;
+namespace Jgut\Doctrine\ManagerBuilder\Tests;
 
 use Doctrine\MongoDB\Connection;
 use Doctrine\ODM\MongoDB\DocumentManager;

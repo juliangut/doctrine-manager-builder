@@ -7,7 +7,7 @@
  * @author Julián Gutiérrez <juliangut@gmail.com>
  */
 
-namespace Jgut\Doctrine\ManagerBuilder\Test;
+namespace Jgut\Doctrine\ManagerBuilder\Tests;
 
 use Jgut\Doctrine\ManagerBuilder\AbstractManagerBuilder;
 use Jgut\Doctrine\ManagerBuilder\ConsoleBuilder;

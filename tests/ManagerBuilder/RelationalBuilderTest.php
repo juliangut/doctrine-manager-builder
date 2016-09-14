@@ -7,9 +7,10 @@
  * @author Julián Gutiérrez <juliangut@gmail.com>
  */
 
-namespace Jgut\Doctrine\ManagerBuilder\Test;
+namespace Jgut\Doctrine\ManagerBuilder\Tests;
 
-use Doctrine\Common\Cache\Cache;
+use Doctrine\Common\Cache\ArrayCache;
+use Doctrine\Common\Cache\CacheProvider;
 use Doctrine\Common\Cache\VoidCache;
 use Doctrine\Common\Persistence\Mapping\Driver\StaticPHPDriver;
 use Doctrine\DBAL\Logging\EchoSQLLogger;
@@ -40,13 +41,23 @@ class RelationalBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function testQueryCache()
     {
-        $this->builder->setOption('cache_driver_namespace', '');
-
-        self::assertInstanceOf(Cache::class, $this->builder->getQueryCacheDriver());
-
-        /** @var Cache $cacheDriver */
         $cacheDriver = $this->getMockBuilder(VoidCache::class)
             ->disableOriginalConstructor()
+            ->setMethodsExcept(['getNamespace', 'setNamespace'])
+            ->getMock();
+
+        $this->builder->setOption('query_cache_driver', $cacheDriver);
+        $this->builder->setOption('query_cache_namespace', 'namespace');
+
+        /* @var CacheProvider $driver */
+        $driver = $this->builder->getQueryCacheDriver();
+        self::assertEquals($cacheDriver, $driver);
+        self::assertEquals('namespace', $driver->getNamespace());
+
+        /* @var CacheProvider $cacheDriver */
+        $cacheDriver = $this->getMockBuilder(ArrayCache::class)
+            ->disableOriginalConstructor()
+            ->setMethodsExcept(['getNamespace'])
             ->getMock();
         $this->builder->setQueryCacheDriver($cacheDriver);
 
@@ -55,11 +66,17 @@ class RelationalBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function testResultCache()
     {
-        $this->builder->setOption('cache_driver_namespace', '');
+        $cacheDriver = $this->getMockBuilder(VoidCache::class)
+            ->disableOriginalConstructor()
+            ->setMethodsExcept(['getNamespace', 'setNamespace'])
+            ->getMock();
 
-        self::assertInstanceOf(Cache::class, $this->builder->getResultCacheDriver());
+        $this->builder->setOption('result_cache_driver', $cacheDriver);
+        $this->builder->setOption('result_cache_namespace', '');
 
-        /** @var Cache $cacheDriver */
+        self::assertInstanceOf(CacheProvider::class, $this->builder->getResultCacheDriver());
+
+        /* @var CacheProvider $cacheDriver */
         $cacheDriver = $this->getMockBuilder(VoidCache::class)
             ->disableOriginalConstructor()
             ->getMock();

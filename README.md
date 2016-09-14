@@ -114,17 +114,16 @@ $documentManager = $couchDBBuilder->getManager();
 * `proxies_path` path were Doctrine creates its proxy classes, defaults to /tmp
 * `proxies_namespace` string for proxies namespace
 * `proxies_auto_generation` integer indicating proxy auto generation behavior
-* `cache_driver` \Doctrine\Common\Cache\Cache default cache driver
-* `metadata_cache_driver` \Doctrine\Common\Cache\Cache metadata cache driver, defaults to `cache_driver`
+* `metadata_cache_driver` \Doctrine\Common\Cache\CacheProvider metadata cache driver, defaults to `cache_driver`
 * `metadata_cache_namespace` string for metadata cache namespace
 * `event_manager` a configured `Doctrine\Common\EventManager`
 
 ### Relational ORM Entity Manager
 
 * `connection` **REQUIRED** array of PDO configurations or a \Doctrine\DBAL\Connection. See [supported drivers](http://php.net/manual/en/pdo.drivers.php)
-* `query_cache_driver` \Doctrine\Common\Cache\Cache query cache driver, defaults to `cache_driver`
+* `query_cache_driver` \Doctrine\Common\Cache\CacheProvider query cache driver, defaults to `cache_driver`
 * `query_cache_namespace` string for query cache namespace
-* `result_cache_driver` \Doctrine\Common\Cache\Cache result cache driver, defaults to `cache_driver`
+* `result_cache_driver` \Doctrine\Common\Cache\CacheProvider result cache driver, defaults to `cache_driver`
 * `result_cache_namespace` string for result cache namespace
 * `default_repository_class` \Doctrine\ORM\EntityRepository
 * `naming_strategy` a `\Doctrine\ORM\Mapping\NamingStrategy`, defaults to `UnderscoreNamingStrategy`
