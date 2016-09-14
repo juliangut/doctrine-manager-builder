@@ -56,7 +56,7 @@ class MongoDBBuilder extends AbstractManagerBuilder
             'hydrators_auto_generation' => AbstractProxyFactory::AUTOGENERATE_NEVER,
             //'persistent_collections_path' => '',
             'persistent_collections_namespace' => 'DoctrineMongoDBODMPersistentCollection',
-            'auto_generate_persistent_collections' => AbstractProxyFactory::AUTOGENERATE_NEVER,
+            'persistent_collections_auto_generation' => AbstractProxyFactory::AUTOGENERATE_NEVER,
             //'default_database' => null,
             //'logger_callable' => null,
         ];
@@ -274,7 +274,7 @@ class MongoDBBuilder extends AbstractManagerBuilder
      */
     protected function getAutoGeneratePersistentCollection()
     {
-        return (int) $this->getOption('auto_generate_persistent_collections');
+        return (int) $this->getOption('persistent_collections_auto_generation');
     }
 
     /**
