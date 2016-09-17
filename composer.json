@@ -37,12 +37,12 @@
     "sebastian/phpcpd": "^2.0",
     "sensiolabs/security-checker": "^3.0",
     "squizlabs/php_codesniffer": "^2.0",
-    "doctrine/orm": "^2.5",
-    "doctrine/mongodb-odm": "^1.1",
+    "doctrine/orm": "^2.0",
+    "doctrine/mongodb-odm": "^1.0",
     "doctrine/couchdb-odm": "dev-master"
   },
   "suggest": {
-    "doctrine/orm": "^2.5",
+    "doctrine/orm": "^2.0",
     "doctrine/mongodb-odm": "^1.0",
     "doctrine/couchdb-odm": "dev-master"
   },
