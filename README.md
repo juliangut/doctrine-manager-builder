@@ -248,6 +248,8 @@ This new CLI tool (doctrine-manager) is more powerful in the sense that it runs 
 
 The configuration of `doctrine-manager` tool resembles the one ORM comes with and so you must have a 'cli-config.php' or ' config/cli-config.php' file 
 
+The only difference is that here you must return an instance of Symfony\Component\Console\Application instead of a Symfony\Component\Console\Helper\HelperSet
+
 ```php
 use Jgut\Doctrine\ManagerBuilder\ConsoleBuilder;
 use Jgut\Doctrine\ManagerBuilder\RelationalBuilder;

@@ -52,7 +52,7 @@ class ConsoleBuilder
      */
     public function getApplication()
     {
-        $application = new Application('Doctrine Command Line Interface');
+        $application = new Application('Doctrine Manager Builder Command Line Interface');
         $application->setCatchExceptions(true);
 
         foreach ($this->builders as $builder) {
