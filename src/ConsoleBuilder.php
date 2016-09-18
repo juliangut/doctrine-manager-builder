@@ -36,11 +36,19 @@ class ConsoleBuilder
      *
      * @param ManagerBuilder $builder
      *
+     * @throws \RuntimeException
+     *
      * @return $this
      */
     public function addBuilder(ManagerBuilder $builder)
     {
-        $this->builders[$builder->getName()] = $builder;
+        $builderName = $builder->getName();
+
+        if (array_key_exists($builderName, $this->builders)) {
+            throw new \RuntimeException(sprintf('"%s" manager builder is already registered', $builderName));
+        }
+
+        $this->builders[$builderName] = $builder;
 
         return $this;
     }

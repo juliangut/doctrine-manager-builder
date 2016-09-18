@@ -40,6 +40,35 @@ class ConsoleBuilderTest extends \PHPUnit_Framework_TestCase
         self::assertCount(1, $consoleBuilder->getBuilders());
     }
 
+    /**
+     * @expectedException \RuntimeException
+     * @expectedExceptionMessage "command" manager builder is already registered
+     */
+    public function testDuplicatedBuilder()
+    {
+        $consoleBuilder = new ConsoleBuilder();
+
+        $builder = $this->getMockBuilder(RelationalBuilder::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $builder
+            ->expects(self::once())
+            ->method('getName')
+            ->will(self::returnValue('command'));
+        /* @var AbstractManagerBuilder $builder */
+        $consoleBuilder->addBuilder($builder);
+
+        $duplicatedBuilder = $this->getMockBuilder(RelationalBuilder::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $duplicatedBuilder
+            ->expects(self::once())
+            ->method('getName')
+            ->will(self::returnValue('command'));
+        /* @var AbstractManagerBuilder $duplicatedBuilder */
+        $consoleBuilder->addBuilder($duplicatedBuilder);
+    }
+
     public function testApplication()
     {
         $command = new Command('command');

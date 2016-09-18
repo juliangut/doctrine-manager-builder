@@ -284,8 +284,6 @@ Available commands:
 ...
 ```
 
-_Mind that if you provide builders with no name, or the same name, commands will run with the last manager included_
-
 ## Contributing
 
 Found a bug or have a feature request? [Please open a new issue](https://github.com/juliangut/doctrine-manager-builder/issues). Have a look at existing issues before.
