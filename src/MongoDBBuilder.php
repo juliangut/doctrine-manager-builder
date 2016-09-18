@@ -185,8 +185,6 @@ class MongoDBBuilder extends AbstractManagerBuilder
 
     /**
      * {@inheritdoc}
-     *
-     * @return AnnotationDriver
      */
     protected function getAnnotationMetadataDriver(array $paths)
     {
@@ -195,8 +193,6 @@ class MongoDBBuilder extends AbstractManagerBuilder
 
     /**
      * {@inheritdoc}
-     *
-     * @return XmlDriver
      */
     protected function getXmlMetadataDriver(array $paths, $extension = null)
     {
@@ -205,8 +201,6 @@ class MongoDBBuilder extends AbstractManagerBuilder
 
     /**
      * {@inheritdoc}
-     *
-     * @return YamlDriver
      */
     protected function getYamlMetadataDriver(array $paths, $extension = null)
     {

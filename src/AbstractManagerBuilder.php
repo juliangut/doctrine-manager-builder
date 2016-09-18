@@ -269,7 +269,7 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
      * @throws \RuntimeException
      * @throws \UnexpectedValueException
      *
-     * @return MappingDriverChain
+     * @return MappingDriver
      */
     public function getMetadataMappingDriver()
     {

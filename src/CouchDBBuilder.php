@@ -109,8 +109,6 @@ class CouchDBBuilder extends AbstractManagerBuilder
 
     /**
      * {@inheritdoc}
-     *
-     * @return AnnotationDriver
      */
     protected function getAnnotationMetadataDriver(array $paths)
     {
@@ -119,8 +117,6 @@ class CouchDBBuilder extends AbstractManagerBuilder
 
     /**
      * {@inheritdoc}
-     *
-     * @return XmlDriver
      */
     protected function getXmlMetadataDriver(array $paths, $extension = null)
     {
@@ -129,8 +125,6 @@ class CouchDBBuilder extends AbstractManagerBuilder
 
     /**
      * {@inheritdoc}
-     *
-     * @return YamlDriver
      */
     protected function getYamlMetadataDriver(array $paths, $extension = null)
     {
