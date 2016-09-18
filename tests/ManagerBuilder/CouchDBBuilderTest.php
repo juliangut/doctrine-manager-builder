@@ -17,6 +17,8 @@ use Symfony\Component\Console\Helper\HelperSet;
 
 /**
  * CouchDB entity builder tests.
+ *
+ * @group couchdb
  */
 class CouchDBBuilderTest extends \PHPUnit_Framework_TestCase
 {

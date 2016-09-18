@@ -18,6 +18,8 @@ use Symfony\Component\Console\Helper\HelperSet;
 
 /**
  * MongoDB entity builder tests.
+ *
+ * @group mongodb
  */
 class MongoDBBuilderTest extends \PHPUnit_Framework_TestCase
 {

@@ -23,6 +23,8 @@ use Symfony\Component\Console\Helper\HelperSet;
 
 /**
  * Relational entity builder tests.
+ *
+ * @group relational
  */
 class RelationalBuilderTest extends \PHPUnit_Framework_TestCase
 {
