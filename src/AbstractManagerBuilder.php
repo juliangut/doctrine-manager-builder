@@ -241,8 +241,16 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
         );
 
         if ($registerDefault === true) {
-            AnnotationRegistry::registerLoader('class_exists');
+            self::registerDefaultAnnotationLoader();
         }
+    }
+
+    /**
+     * Register default annotation loader.
+     */
+    public static function registerDefaultAnnotationLoader()
+    {
+        AnnotationRegistry::registerLoader('class_exists');
     }
 
     /**

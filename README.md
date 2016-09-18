@@ -48,7 +48,7 @@ $rdbmsBuilder = new RelationalBuilder([
         ],
     ],
 ]);
-$entityManager = $rdbmsBuilder->getManager();
+AbstractManagerBuilder::registerDefaultAnnotationLoader(true);
 ```
 
 ### MongoDB Document Manager
@@ -76,7 +76,7 @@ $mongoDBBuilder = new MongoDBBuilder([
         ],
     ],
 ]);
-$documentManager = $mongoDBBuilder->getManager();
+$documentManager = $mongoDBBuilder->getManager(true);
 ```
 
 ### CouchDB Document Manager
@@ -98,7 +98,7 @@ $couchDBBuilder = new CouchDBBuilder([
         ],
     ],
 ]);
-$documentManager = $couchDBBuilder->getManager();
+$documentManager = $couchDBBuilder->getManager(true);
 ```
 
 **Mind that Doctrine CouchDB ODM support is not as good/wide as in Doctrine ORM or Doctrine MongoDB ODM**
@@ -159,6 +159,8 @@ $documentManager = $couchDBBuilder->getManager();
     * `driver` an already created \Doctrine\Common\Persistence\Mapping\Driver\MappingDriver object **REQUIRED if no type AND path**
 * `metadata_cache_driver`, if not provided, is automatically generated in the following order based on availability: `ApcuCache`, `XcacheCache`, `MemcacheCache`, `RedisCache` and finally fallback to `ArrayCache` which is always available. Any other cache driver not provided will fallback to using a clone of metadata cache driver.
 * `proxies_auto_generation`, `hydrators_auto_generation` and `persistent_collections_auto_generation` configuration values are Doctrine\Common\Proxy\AbstractProxyFactory constants, in all cases it defaults to `AUTOGENERATE_NEVER`.
+
+> Make sure you always load 'default annotation loader' by passing 'true' to LAST `getManager` method call.
 
 Managers are being configured **ready for production**, this means proxies, hydrators and persisten collections won't be automatically generated and, in case no cache driver is provided, one will be auto-generated. It is recommended you always provide your cache provider, for development you should use `VoidCache`.
 

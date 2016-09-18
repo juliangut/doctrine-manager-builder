@@ -16,6 +16,7 @@ use Doctrine\Common\Persistence\Mapping\Driver\StaticPHPDriver;
 use Doctrine\DBAL\Logging\EchoSQLLogger;
 use Doctrine\DBAL\Types\StringType;
 use Doctrine\ORM\EntityManager;
+use Jgut\Doctrine\ManagerBuilder\AbstractManagerBuilder;
 use Jgut\Doctrine\ManagerBuilder\ManagerBuilder;
 use Jgut\Doctrine\ManagerBuilder\RelationalBuilder;
 use Symfony\Component\Console\Command\Command;
@@ -39,6 +40,8 @@ class RelationalBuilderTest extends \PHPUnit_Framework_TestCase
     public function setUp()
     {
         $this->builder = new RelationalBuilder([], 'test');
+
+        AbstractManagerBuilder::registerDefaultAnnotationLoader();
     }
 
     public function testQueryCache()
