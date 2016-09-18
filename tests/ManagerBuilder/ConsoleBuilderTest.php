@@ -64,6 +64,9 @@ class ConsoleBuilderTest extends \PHPUnit_Framework_TestCase
         $consoleBuilder = new ConsoleBuilder();
         $consoleBuilder->addBuilder($builder);
 
-        self::assertInstanceOf(Application::class, $consoleBuilder->getApplication());
+        $application = $consoleBuilder->getApplication();
+        self::assertInstanceOf(Application::class, $application);
+
+        self::assertTrue($application->has('command'));
     }
 }

@@ -97,8 +97,8 @@ class MongoDBBuilderTest extends \PHPUnit_Framework_TestCase
 
         return array_walk(
             $commands,
-            function ($command) {
-                static::assertInstanceOf(Command::class, $command);
+            function (Command $command) {
+                static::assertEquals(1, preg_match('/^test:odm:/', $command->getName()));
             }
         );
     }
