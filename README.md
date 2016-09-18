@@ -140,7 +140,7 @@ $documentManager = $couchDBBuilder->getManager();
 * `hydrators_path` path where Doctrine creates its hydrator classes, defaults to /tmp
 * `hydrators_namespace` string for hydrators namespace, defaults to 'DoctrineODMHydrator'
 * `hydrators_auto_generation` integer indicating hydrators auto generation behavior
-* `default_repository_class` \Doctrine\ORM\DocumentRepository
+* `default_repository_class` \Doctrine\ODM\MongoDB\DocumentRepository
 * `default_database` **REQUIRED** default database to be used in case none specified
 * `logger_callable` valid callable
 
@@ -150,8 +150,6 @@ $documentManager = $couchDBBuilder->getManager();
 * `lucene_handler_name` Apache Lucene handler name
 
 ### Considerations
-
-These are general considerations when configuring managers:
 
 * `metadata_mapping` must be an array containing arrays of configurations to create MappingDriver objects:
     * `type` one of \Jgut\Doctrine\ManagerBuilder\ManagerBuilder constants: `METADATA_MAPPING_ANNOTATION`, `METADATA_MAPPING_XML`, `METADATA_MAPPING_YAML` or `METADATA_MAPPING_PHP` **REQUIRED if no driver**
