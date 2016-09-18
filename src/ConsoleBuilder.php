@@ -42,7 +42,11 @@ class ConsoleBuilder
      */
     public function addBuilder(ManagerBuilder $builder)
     {
-        $builderName = $builder->getName();
+        $builderName = (string) $builder->getName();
+
+        if ($builderName === '') {
+            throw new \RuntimeException('Only named manager builders allowed');
+        }
 
         if (array_key_exists($builderName, $this->builders)) {
             throw new \RuntimeException(sprintf('"%s" manager builder is already registered', $builderName));

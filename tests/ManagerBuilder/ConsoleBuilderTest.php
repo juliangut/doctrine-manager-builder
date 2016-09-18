@@ -42,6 +42,21 @@ class ConsoleBuilderTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @expectedException \RuntimeException
+     * @expectedExceptionMessage Only named manager builders allowed
+     */
+    public function testUnnamedBuilder()
+    {
+        $builder = $this->getMockBuilder(RelationalBuilder::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        /* @var AbstractManagerBuilder $builder */
+
+        $consoleBuilder = new ConsoleBuilder();
+        $consoleBuilder->addBuilder($builder);
+    }
+
+    /**
+     * @expectedException \RuntimeException
      * @expectedExceptionMessage "command" manager builder is already registered
      */
     public function testDuplicatedBuilder()
