@@ -40,8 +40,6 @@ class RelationalBuilderTest extends \PHPUnit_Framework_TestCase
     public function setUp()
     {
         $this->builder = new RelationalBuilder([], 'test');
-
-        AbstractManagerBuilder::registerDefaultAnnotationLoader();
     }
 
     public function testQueryCache()
@@ -98,7 +96,7 @@ class RelationalBuilderTest extends \PHPUnit_Framework_TestCase
     {
         $this->builder->setOption('annotation_files', __DIR__ . '/fake_file.php');
 
-        $this->builder->getManager(true, true);
+        $this->builder->getManager(true);
     }
 
     /**
@@ -118,7 +116,7 @@ class RelationalBuilderTest extends \PHPUnit_Framework_TestCase
     {
         $this->builder->setOption('metadata_mapping', [[]]);
 
-        $this->builder->getManager(true, true);
+        $this->builder->getManager(true);
     }
 
     /**
@@ -129,7 +127,7 @@ class RelationalBuilderTest extends \PHPUnit_Framework_TestCase
     {
         $this->builder->setOption('metadata_mapping', [__DIR__]);
 
-        $this->builder->getManager(true, true);
+        $this->builder->getManager(true);
     }
 
     /**
@@ -140,7 +138,7 @@ class RelationalBuilderTest extends \PHPUnit_Framework_TestCase
     {
         $this->builder->setOption('metadata_mapping', [['type' => 'unknown', 'path' => __DIR__]]);
 
-        $this->builder->getManager(true, true);
+        $this->builder->getManager(true);
     }
 
     /**
@@ -158,7 +156,7 @@ class RelationalBuilderTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $this->builder->getManager(true, true);
+        $this->builder->getManager(true);
     }
 
     /**
@@ -177,7 +175,7 @@ class RelationalBuilderTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $this->builder->getManager(true, true);
+        $this->builder->getManager(true);
     }
 
     public function testManager()
@@ -196,7 +194,7 @@ class RelationalBuilderTest extends \PHPUnit_Framework_TestCase
         $this->builder->setOption('custom_datetime_functions', 'datetime');
         $this->builder->setOption('custom_types', ['fake_type' => StringType::class]);
 
-        static::assertInstanceOf(EntityManager::class, $this->builder->getManager(true));
+        static::assertInstanceOf(EntityManager::class, $this->builder->getManager());
     }
 
     public function testConsoleCommands()

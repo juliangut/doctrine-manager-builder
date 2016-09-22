@@ -72,14 +72,14 @@ class MongoDBBuilder extends AbstractManagerBuilder
      *
      * @return DocumentManager
      */
-    public function getManager($standalone = false, $force = false)
+    public function getManager($force = false)
     {
         if ($force === true) {
             $this->wipe();
         }
 
         if (!$this->manager instanceof DocumentManager) {
-            $this->manager = $this->buildManager($standalone);
+            $this->manager = $this->buildManager();
         }
 
         return $this->manager;
@@ -99,8 +99,6 @@ class MongoDBBuilder extends AbstractManagerBuilder
     /**
      * Build Doctrine MongoDB Document Manager.
      *
-     * @param bool $standalone
-     *
      * @throws \Doctrine\ODM\MongoDB\MongoDBException
      * @throws \InvalidArgumentException
      * @throws \RuntimeException
@@ -108,11 +106,11 @@ class MongoDBBuilder extends AbstractManagerBuilder
      *
      * @return DocumentManager
      */
-    protected function buildManager($standalone = false)
+    protected function buildManager()
     {
         $config = new Configuration;
 
-        $this->setupAnnotationMetadata($standalone);
+        $this->setupAnnotationMetadata();
         $config->setMetadataDriverImpl($this->getMetadataMappingDriver());
 
         $config->setProxyDir($this->getProxiesPath());

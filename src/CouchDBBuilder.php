@@ -53,14 +53,14 @@ class CouchDBBuilder extends AbstractManagerBuilder
      *
      * @return DocumentManager
      */
-    public function getManager($standalone = false, $force = false)
+    public function getManager($force = false)
     {
         if ($force === true) {
             $this->wipe();
         }
 
         if (!$this->manager instanceof DocumentManager) {
-            $this->manager = $this->buildManager($standalone);
+            $this->manager = $this->buildManager();
         }
 
         return $this->manager;
@@ -79,19 +79,17 @@ class CouchDBBuilder extends AbstractManagerBuilder
     /**
      * Build Doctrine CouchDB Document Manager.
      *
-     * @param bool $standalone
-     *
      * @throws \InvalidArgumentException
      * @throws \RuntimeException
      * @throws \UnexpectedValueException
      *
      * @return DocumentManager
      */
-    protected function buildManager($standalone = false)
+    protected function buildManager()
     {
         $config = new Configuration;
 
-        $this->setupAnnotationMetadata($standalone);
+        $this->setupAnnotationMetadata();
         $config->setMetadataDriverImpl($this->getMetadataMappingDriver());
 
         $config->setProxyDir($this->getProxiesPath());

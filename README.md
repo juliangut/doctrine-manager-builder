@@ -37,6 +37,7 @@ use Jgut\Doctrine\ManagerBuilder\ManagerBuilder;
 use Jgut\Doctrine\ManagerBuilder\RelationalBuilder;
 
 $rdbmsBuilder = new RelationalBuilder([
+    'annotation_autoloaders' => ['class_exists'],
     'connection' => [
         'driver' => 'pdo_sqlite',
         'memory' => true,
@@ -48,7 +49,6 @@ $rdbmsBuilder = new RelationalBuilder([
         ],
     ],
 ]);
-AbstractManagerBuilder::registerDefaultAnnotationLoader(true);
 ```
 
 ### MongoDB Document Manager
@@ -58,6 +58,7 @@ use Jgut\Doctrine\ManagerBuilder\ManagerBuilder;
 use Jgut\Doctrine\ManagerBuilder\MongoDBBuilder;
 
 $mongoDBBuilder = new MongoDBBuilder([
+    'annotation_autoloaders' => ['class_exists'],
     'connection' => [
         'server' => 'mongodb://localhost:27017',
         'options' => ['connect' => false],
@@ -76,7 +77,7 @@ $mongoDBBuilder = new MongoDBBuilder([
         ],
     ],
 ]);
-$documentManager = $mongoDBBuilder->getManager(true);
+$documentManager = $mongoDBBuilder->getManager();
 ```
 
 ### CouchDB Document Manager
@@ -86,6 +87,7 @@ use Jgut\Doctrine\ManagerBuilder\CouchDBBuilder;
 use Jgut\Doctrine\ManagerBuilder\MongoDBBuilder;
 
 $couchDBBuilder = new CouchDBBuilder([
+    'annotation_autoloaders' => ['class_exists'],
     'connection' => [
         'host' => 'localhost',
         'dbname' => 'doctrine',
@@ -98,7 +100,7 @@ $couchDBBuilder = new CouchDBBuilder([
         ],
     ],
 ]);
-$documentManager = $couchDBBuilder->getManager(true);
+$documentManager = $couchDBBuilder->getManager();
 ```
 
 **Mind that Doctrine CouchDB ODM support is not as good/wide as in Doctrine ORM or Doctrine MongoDB ODM**
@@ -151,6 +153,7 @@ $documentManager = $couchDBBuilder->getManager(true);
 
 ### Considerations
 
+* Make sure you always provide an `annotation_autoloader` callable to fallback in loading annotations, typically it will be 'class_exists'. If creating various managers this should be added to the last one generated.
 * `metadata_mapping` must be an array containing arrays of configurations to create MappingDriver objects:
     * `type` one of \Jgut\Doctrine\ManagerBuilder\ManagerBuilder constants: `METADATA_MAPPING_ANNOTATION`, `METADATA_MAPPING_XML`, `METADATA_MAPPING_YAML` or `METADATA_MAPPING_PHP` **REQUIRED if no driver**
     * `path` a string path or array of paths to where mapping files are **REQUIRED if no driver**
@@ -160,9 +163,7 @@ $documentManager = $couchDBBuilder->getManager(true);
 * `metadata_cache_driver`, if not provided, is automatically generated in the following order based on availability: `ApcuCache`, `XcacheCache`, `MemcacheCache`, `RedisCache` and finally fallback to `ArrayCache` which is always available. Any other cache driver not provided will fallback to using a clone of metadata cache driver.
 * `proxies_auto_generation`, `hydrators_auto_generation` and `persistent_collections_auto_generation` configuration values are Doctrine\Common\Proxy\AbstractProxyFactory constants, in all cases it defaults to `AUTOGENERATE_NEVER`.
 
-> Make sure you always load 'default annotation loader' by passing 'true' to LAST `getManager` method call.
-
-Managers are being configured **ready for production**, this means proxies, hydrators and persisten collections won't be automatically generated and, in case no cache driver is provided, one will be auto-generated. It is recommended you always provide your cache provider, for development you should use `VoidCache`.
+Managers are being configured **ready for production**, this means proxies, hydrators and persisten collections won't be automatically generated and, in case no cache driver is provided, one will be auto-generated. It is recommended you always provide your cache provider. For development you should use `VoidCache`.
 
 ## Extending managers
 
@@ -228,7 +229,7 @@ $rdbmsBuilder = new RelationalBuilder([
     ],
 ]);
 
-// Add listeners to builder event manager
+// Add listeners to builder's event manager
 $eventManager = $rdbmsBuilder->getEventManager();
 $eventManager->addEventSubscriber(new SluggableListener);
 $eventManager->addEventSubscriber(new TimestampableListener);

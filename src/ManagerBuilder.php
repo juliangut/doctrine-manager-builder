@@ -29,12 +29,11 @@ interface ManagerBuilder
     /**
      * Retrieve Doctrine object manager.
      *
-     * @param bool $standalone
      * @param bool $force
      *
      * @return \Doctrine\Common\Persistence\ObjectManager
      */
-    public function getManager($standalone = false, $force = false);
+    public function getManager($force = false);
 
     /**
      * Get console commands.

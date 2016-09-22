@@ -110,14 +110,14 @@ class RelationalBuilder extends AbstractManagerBuilder
      *
      * @return EntityManager
      */
-    public function getManager($standalone = false, $force = false)
+    public function getManager($force = false)
     {
         if ($force === true) {
             $this->wipe();
         }
 
         if (!$this->manager instanceof EntityManager) {
-            $this->manager = $this->buildManager($standalone);
+            $this->manager = $this->buildManager();
         }
 
         return $this->manager;
@@ -141,8 +141,6 @@ class RelationalBuilder extends AbstractManagerBuilder
     /**
      * Build new Doctrine entity manager.
      *
-     * @param bool $standalone
-     *
      * @throws \Doctrine\DBAL\DBALException
      * @throws \Doctrine\ORM\ORMException
      * @throws \InvalidArgumentException
@@ -151,11 +149,11 @@ class RelationalBuilder extends AbstractManagerBuilder
      *
      * @return EntityManager
      */
-    protected function buildManager($standalone = false)
+    protected function buildManager()
     {
         $config = new Configuration();
 
-        $this->setupAnnotationMetadata($standalone);
+        $this->setupAnnotationMetadata();
         $config->setMetadataDriverImpl($this->getMetadataMappingDriver());
 
         $config->setProxyDir($this->getProxiesPath());

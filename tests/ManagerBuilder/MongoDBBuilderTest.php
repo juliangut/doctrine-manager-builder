@@ -52,7 +52,7 @@ class MongoDBBuilderTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $this->builder->getManager(true, true);
+        $this->builder->getManager(true);
     }
 
     /**
@@ -82,7 +82,7 @@ class MongoDBBuilderTest extends \PHPUnit_Framework_TestCase
         $this->builder->setOption('default_database', 'ddbb');
         $this->builder->setOption('logger_callable', 'class_exists');
 
-        static::assertInstanceOf(DocumentManager::class, $this->builder->getManager(true));
+        static::assertInstanceOf(DocumentManager::class, $this->builder->getManager());
     }
 
     public function testConsoleCommands()

@@ -211,12 +211,10 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
     /**
      * Set up annotation metadata.
      *
-     * @param bool $registerDefault
-     *
      * @throws \InvalidArgumentException
      * @throws \RuntimeException
      */
-    protected function setupAnnotationMetadata($registerDefault = false)
+    protected function setupAnnotationMetadata()
     {
         $annotationFiles = (array) $this->getOption('annotation_files');
         array_walk(
@@ -239,18 +237,6 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
                 AnnotationRegistry::registerLoader($autoLoader);
             }
         );
-
-        if ($registerDefault === true) {
-            self::registerDefaultAnnotationLoader();
-        }
-    }
-
-    /**
-     * Register default annotation loader.
-     */
-    public static function registerDefaultAnnotationLoader()
-    {
-        AnnotationRegistry::registerLoader('class_exists');
     }
 
     /**

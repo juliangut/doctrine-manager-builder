@@ -50,7 +50,7 @@ class CouchDBBuilderTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $this->builder->getManager(true, true);
+        $this->builder->getManager(true);
     }
 
     /**
@@ -77,7 +77,7 @@ class CouchDBBuilderTest extends \PHPUnit_Framework_TestCase
         );
         $this->builder->setOption('lucene_handler_name', 'lucene');
 
-        static::assertInstanceOf(DocumentManager::class, $this->builder->getManager(true));
+        static::assertInstanceOf(DocumentManager::class, $this->builder->getManager());
     }
 
     public function testConsoleCommands()
