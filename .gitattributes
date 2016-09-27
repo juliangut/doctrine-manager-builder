@@ -9,6 +9,7 @@
 .styleci.yml     export-ignore
 gulp             export-ignore
 gulpfile.js      export-ignore
+package.json     export-ignore
 README.md        export-ignore
 CONTRIBUTING.md  export-ignore
 phpunit.xml      export-ignore
