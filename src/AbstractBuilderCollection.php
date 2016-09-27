@@ -44,7 +44,7 @@ class AbstractBuilderCollection
             return $this->builders[$builderName];
         }
 
-        return null;
+        return;
     }
 
     /**
