@@ -23,67 +23,6 @@ use Symfony\Component\Console\Helper\HelperSet;
  */
 class ConsoleBuilderTest extends \PHPUnit_Framework_TestCase
 {
-    public function testBuilder()
-    {
-        $builder = $this->getMockBuilder(RelationalBuilder::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $builder
-            ->expects(self::once())
-            ->method('getName')
-            ->will(self::returnValue('command'));
-        /* @var AbstractManagerBuilder $builder */
-
-        $consoleBuilder = new ConsoleBuilder();
-        $consoleBuilder->addBuilder($builder);
-
-        self::assertCount(1, $consoleBuilder->getBuilders());
-    }
-
-    /**
-     * @expectedException \RuntimeException
-     * @expectedExceptionMessage Only named manager builders allowed
-     */
-    public function testUnnamedBuilder()
-    {
-        $builder = $this->getMockBuilder(RelationalBuilder::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        /* @var AbstractManagerBuilder $builder */
-
-        $consoleBuilder = new ConsoleBuilder();
-        $consoleBuilder->addBuilder($builder);
-    }
-
-    /**
-     * @expectedException \RuntimeException
-     * @expectedExceptionMessage "command" manager builder is already registered
-     */
-    public function testDuplicatedBuilder()
-    {
-        $consoleBuilder = new ConsoleBuilder();
-
-        $builder = $this->getMockBuilder(RelationalBuilder::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $builder
-            ->expects(self::once())
-            ->method('getName')
-            ->will(self::returnValue('command'));
-        /* @var AbstractManagerBuilder $builder */
-        $consoleBuilder->addBuilder($builder);
-
-        $duplicatedBuilder = $this->getMockBuilder(RelationalBuilder::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $duplicatedBuilder
-            ->expects(self::once())
-            ->method('getName')
-            ->will(self::returnValue('command'));
-        /* @var AbstractManagerBuilder $duplicatedBuilder */
-        $consoleBuilder->addBuilder($duplicatedBuilder);
-    }
-
     public function testApplication()
     {
         $command = new Command('command');
@@ -106,6 +45,7 @@ class ConsoleBuilderTest extends \PHPUnit_Framework_TestCase
         /* @var AbstractManagerBuilder $builder */
 
         $consoleBuilder = new ConsoleBuilder();
+
         $consoleBuilder->addBuilder($builder);
 
         $application = $consoleBuilder->getApplication();
