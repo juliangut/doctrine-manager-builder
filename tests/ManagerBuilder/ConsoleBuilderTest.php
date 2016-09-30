@@ -7,7 +7,7 @@
  * @author Julián Gutiérrez <juliangut@gmail.com>
  */
 
-namespace Jgut\Doctrine\ManagerBuilder\Test;
+namespace Jgut\Doctrine\ManagerBuilder\Tests;
 
 use Jgut\Doctrine\ManagerBuilder\AbstractManagerBuilder;
 use Jgut\Doctrine\ManagerBuilder\ConsoleBuilder;
@@ -23,23 +23,6 @@ use Symfony\Component\Console\Helper\HelperSet;
  */
 class ConsoleBuilderTest extends \PHPUnit_Framework_TestCase
 {
-    public function testBuilder()
-    {
-        $builder = $this->getMockBuilder(RelationalBuilder::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $builder
-            ->expects(self::once())
-            ->method('getName')
-            ->will(self::returnValue('command'));
-        /* @var AbstractManagerBuilder $builder */
-
-        $consoleBuilder = new ConsoleBuilder();
-        $consoleBuilder->addBuilder($builder);
-
-        self::assertCount(1, $consoleBuilder->getBuilders());
-    }
-
     public function testApplication()
     {
         $command = new Command('command');
@@ -62,8 +45,12 @@ class ConsoleBuilderTest extends \PHPUnit_Framework_TestCase
         /* @var AbstractManagerBuilder $builder */
 
         $consoleBuilder = new ConsoleBuilder();
+
         $consoleBuilder->addBuilder($builder);
 
-        self::assertInstanceOf(Application::class, $consoleBuilder->getApplication());
+        $application = $consoleBuilder->getApplication();
+        self::assertInstanceOf(Application::class, $application);
+
+        self::assertTrue($application->has('command'));
     }
 }

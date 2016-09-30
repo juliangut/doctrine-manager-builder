@@ -12,7 +12,6 @@ namespace Jgut\Doctrine\ManagerBuilder;
 use Doctrine\Common\Annotations\AnnotationRegistry;
 use Doctrine\Common\Cache\ApcuCache;
 use Doctrine\Common\Cache\ArrayCache;
-use Doctrine\Common\Cache\Cache;
 use Doctrine\Common\Cache\CacheProvider;
 use Doctrine\Common\Cache\MemcacheCache;
 use Doctrine\Common\Cache\RedisCache;
@@ -42,18 +41,10 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
         //'proxies_path' => null,
         //'proxies_namespace' => '',
         'proxies_auto_generation' => AbstractProxyFactory::AUTOGENERATE_NEVER,
-        //'cache_driver' => null,
         //'metadata_cache_driver' => null,
         //'metadata_cache_namespace' => '',
         //'event_manager' => null,
     ];
-
-    /**
-     * Builder name.
-     *
-     * @var
-     */
-    protected $name;
 
     /**
      * Builder options.
@@ -61,6 +52,13 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
      * @var array
      */
     protected $options = [];
+
+    /**
+     * Builder name.
+     *
+     * @var
+     */
+    protected $name;
 
     /**
      * Metadata mapping driver.
@@ -72,23 +70,16 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
     /**
      * General cache driver.
      *
-     * @var Cache
+     * @var CacheProvider
      */
     protected $cacheDriver;
 
     /**
      * Metadata cache driver.
      *
-     * @var Cache
+     * @var CacheProvider
      */
     protected $metadataCacheDriver;
-
-    /**
-     * Mapping driver chain.
-     *
-     * @var MappingDriverChain
-     */
-    protected $mappingDriverChain;
 
     /**
      * Event manager.
@@ -124,7 +115,6 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
         $this->mappingDriver = null;
         $this->cacheDriver = null;
         $this->metadataCacheDriver = null;
-        $this->mappingDriverChain = null;
         $this->eventManager = null;
     }
 
@@ -221,12 +211,10 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
     /**
      * Set up annotation metadata.
      *
-     * @param bool $registerDefault
-     *
      * @throws \InvalidArgumentException
      * @throws \RuntimeException
      */
-    protected function setupAnnotationMetadata($registerDefault = false)
+    protected function setupAnnotationMetadata()
     {
         $annotationFiles = (array) $this->getOption('annotation_files');
         array_walk(
@@ -249,10 +237,6 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
                 AnnotationRegistry::registerLoader($autoLoader);
             }
         );
-
-        if ($registerDefault === true) {
-            AnnotationRegistry::registerLoader('class_exists');
-        }
     }
 
     /**
@@ -279,7 +263,7 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
      * @throws \RuntimeException
      * @throws \UnexpectedValueException
      *
-     * @return MappingDriverChain
+     * @return MappingDriver
      */
     public function getMetadataMappingDriver()
     {
@@ -447,15 +431,15 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
      *
      * @throws \InvalidArgumentException
      *
-     * @return Cache
+     * @return CacheProvider
      */
     public function getMetadataCacheDriver()
     {
-        if (!$this->metadataCacheDriver instanceof Cache) {
+        if (!$this->metadataCacheDriver instanceof CacheProvider) {
             $metadataCacheDriver = $this->getOption('metadata_cache_driver');
 
-            if (!$metadataCacheDriver instanceof Cache) {
-                $metadataCacheDriver = clone $this->getCacheDriver();
+            if (!$metadataCacheDriver instanceof CacheProvider) {
+                $metadataCacheDriver = $this->createNewCacheDriver();
             }
 
             if ($metadataCacheDriver->getNamespace() === '') {
@@ -469,50 +453,14 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
     }
 
     /**
-     * Set metadata cache driver.
-     *
-     * @param Cache $metadataCacheDriver
-     */
-    public function setMetadataCacheDriver(Cache $metadataCacheDriver)
-    {
-        $this->metadataCacheDriver = $metadataCacheDriver;
-    }
-
-    /**
-     * Retrieve general cache driver.
-     *
-     * @throws \InvalidArgumentException
-     *
-     * @return CacheProvider
-     */
-    public function getCacheDriver()
-    {
-        if (!$this->cacheDriver instanceof Cache) {
-            $cacheDriver = $this->getOption('cache_driver');
-
-            if ($cacheDriver === null) {
-                $cacheDriver = $this->createNewCacheDriver();
-            }
-
-            if (!$cacheDriver instanceof Cache) {
-                throw new \InvalidArgumentException('Cache Driver provided is not valid');
-            }
-
-            $this->cacheDriver = $cacheDriver;
-        }
-
-        return $this->cacheDriver;
-    }
-
-    /**
      * Retrieve a newly created cache driver.
      *
      * @return ApcuCache|ArrayCache|MemcacheCache|RedisCache|XcacheCache
      */
     private function createNewCacheDriver()
     {
-        // @codeCoverageIgnoreStart
         switch (true) {
+            // @codeCoverageIgnoreStart
             case extension_loaded('apc'):
                 $cacheDriver = new ApcuCache;
                 break;
@@ -536,23 +484,23 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
                 $cacheDriver = new RedisCache;
                 $cacheDriver->setRedis($redis);
                 break;
+            // @codeCoverageIgnoreEnd
 
             default:
                 $cacheDriver = new ArrayCache;
         }
-        // @codeCoverageIgnoreEnd
 
         return $cacheDriver;
     }
 
     /**
-     * Set general cache driver.
+     * Set metadata cache driver.
      *
-     * @param Cache $cacheDriver
+     * @param CacheProvider $metadataCacheDriver
      */
-    public function setCacheDriver(Cache $cacheDriver)
+    public function setMetadataCacheDriver(CacheProvider $metadataCacheDriver)
     {
-        $this->cacheDriver = $cacheDriver;
+        $this->metadataCacheDriver = $metadataCacheDriver;
     }
 
     /**

@@ -7,9 +7,10 @@
  * @author Julián Gutiérrez <juliangut@gmail.com>
  */
 
-namespace Jgut\Doctrine\ManagerBuilder\Test;
+namespace Jgut\Doctrine\ManagerBuilder\Tests;
 
-use Doctrine\Common\Cache\Cache;
+use Doctrine\Common\Cache\ArrayCache;
+use Doctrine\Common\Cache\CacheProvider;
 use Doctrine\Common\Cache\VoidCache;
 use Doctrine\Common\Persistence\Mapping\Driver\StaticPHPDriver;
 use Doctrine\DBAL\Logging\EchoSQLLogger;
@@ -22,6 +23,8 @@ use Symfony\Component\Console\Helper\HelperSet;
 
 /**
  * Relational entity builder tests.
+ *
+ * @group relational
  */
 class RelationalBuilderTest extends \PHPUnit_Framework_TestCase
 {
@@ -40,13 +43,23 @@ class RelationalBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function testQueryCache()
     {
-        $this->builder->setOption('cache_driver_namespace', '');
-
-        self::assertInstanceOf(Cache::class, $this->builder->getQueryCacheDriver());
-
-        /** @var Cache $cacheDriver */
         $cacheDriver = $this->getMockBuilder(VoidCache::class)
             ->disableOriginalConstructor()
+            ->setMethodsExcept(['getNamespace', 'setNamespace'])
+            ->getMock();
+
+        $this->builder->setOption('query_cache_driver', $cacheDriver);
+        $this->builder->setOption('query_cache_namespace', 'namespace');
+
+        /* @var CacheProvider $driver */
+        $driver = $this->builder->getQueryCacheDriver();
+        self::assertEquals($cacheDriver, $driver);
+        self::assertEquals('namespace', $driver->getNamespace());
+
+        /* @var CacheProvider $cacheDriver */
+        $cacheDriver = $this->getMockBuilder(ArrayCache::class)
+            ->disableOriginalConstructor()
+            ->setMethodsExcept(['getNamespace'])
             ->getMock();
         $this->builder->setQueryCacheDriver($cacheDriver);
 
@@ -55,11 +68,17 @@ class RelationalBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function testResultCache()
     {
-        $this->builder->setOption('cache_driver_namespace', '');
+        $cacheDriver = $this->getMockBuilder(VoidCache::class)
+            ->disableOriginalConstructor()
+            ->setMethodsExcept(['getNamespace', 'setNamespace'])
+            ->getMock();
 
-        self::assertInstanceOf(Cache::class, $this->builder->getResultCacheDriver());
+        $this->builder->setOption('result_cache_driver', $cacheDriver);
+        $this->builder->setOption('result_cache_namespace', '');
 
-        /** @var Cache $cacheDriver */
+        self::assertInstanceOf(CacheProvider::class, $this->builder->getResultCacheDriver());
+
+        /* @var CacheProvider $cacheDriver */
         $cacheDriver = $this->getMockBuilder(VoidCache::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -76,7 +95,7 @@ class RelationalBuilderTest extends \PHPUnit_Framework_TestCase
     {
         $this->builder->setOption('annotation_files', __DIR__ . '/fake_file.php');
 
-        $this->builder->getManager(true, true);
+        $this->builder->getManager(true);
     }
 
     /**
@@ -96,7 +115,7 @@ class RelationalBuilderTest extends \PHPUnit_Framework_TestCase
     {
         $this->builder->setOption('metadata_mapping', [[]]);
 
-        $this->builder->getManager(true, true);
+        $this->builder->getManager(true);
     }
 
     /**
@@ -107,7 +126,7 @@ class RelationalBuilderTest extends \PHPUnit_Framework_TestCase
     {
         $this->builder->setOption('metadata_mapping', [__DIR__]);
 
-        $this->builder->getManager(true, true);
+        $this->builder->getManager(true);
     }
 
     /**
@@ -118,7 +137,7 @@ class RelationalBuilderTest extends \PHPUnit_Framework_TestCase
     {
         $this->builder->setOption('metadata_mapping', [['type' => 'unknown', 'path' => __DIR__]]);
 
-        $this->builder->getManager(true, true);
+        $this->builder->getManager(true);
     }
 
     /**
@@ -136,7 +155,7 @@ class RelationalBuilderTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $this->builder->getManager(true, true);
+        $this->builder->getManager(true);
     }
 
     /**
@@ -155,7 +174,7 @@ class RelationalBuilderTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $this->builder->getManager(true, true);
+        $this->builder->getManager(true);
     }
 
     public function testManager()
@@ -174,7 +193,7 @@ class RelationalBuilderTest extends \PHPUnit_Framework_TestCase
         $this->builder->setOption('custom_datetime_functions', 'datetime');
         $this->builder->setOption('custom_types', ['fake_type' => StringType::class]);
 
-        static::assertInstanceOf(EntityManager::class, $this->builder->getManager(true));
+        static::assertInstanceOf(EntityManager::class, $this->builder->getManager());
     }
 
     public function testConsoleCommands()
@@ -189,8 +208,8 @@ class RelationalBuilderTest extends \PHPUnit_Framework_TestCase
 
         return array_walk(
             $commands,
-            function ($command) {
-                static::assertInstanceOf(Command::class, $command);
+            function (Command $command) {
+                static::assertEquals(1, preg_match('/^test:(dbal|orm):/', $command->getName()));
             }
         );
     }

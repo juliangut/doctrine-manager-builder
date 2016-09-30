@@ -10,7 +10,7 @@
 namespace Jgut\Doctrine\ManagerBuilder;
 
 use Doctrine\Common\Annotations\AnnotationReader;
-use Doctrine\Common\Cache\Cache;
+use Doctrine\Common\Cache\CacheProvider;
 use Doctrine\DBAL\Logging\SQLLogger;
 use Doctrine\DBAL\Tools\Console\Helper\ConnectionHelper;
 use Doctrine\DBAL\Types\Type;
@@ -43,14 +43,14 @@ class RelationalBuilder extends AbstractManagerBuilder
     /**
      * Query cache driver.
      *
-     * @var Cache
+     * @var CacheProvider
      */
     protected $queryCacheDriver;
 
     /**
      * Result cache driver.
      *
-     * @var Cache
+     * @var CacheProvider
      */
     protected $resultCacheDriver;
 
@@ -110,14 +110,14 @@ class RelationalBuilder extends AbstractManagerBuilder
      *
      * @return EntityManager
      */
-    public function getManager($standalone = false, $force = false)
+    public function getManager($force = false)
     {
         if ($force === true) {
             $this->wipe();
         }
 
         if (!$this->manager instanceof EntityManager) {
-            $this->manager = $this->buildManager($standalone);
+            $this->manager = $this->buildManager();
         }
 
         return $this->manager;
@@ -141,8 +141,6 @@ class RelationalBuilder extends AbstractManagerBuilder
     /**
      * Build new Doctrine entity manager.
      *
-     * @param bool $standalone
-     *
      * @throws \Doctrine\DBAL\DBALException
      * @throws \Doctrine\ORM\ORMException
      * @throws \InvalidArgumentException
@@ -151,11 +149,11 @@ class RelationalBuilder extends AbstractManagerBuilder
      *
      * @return EntityManager
      */
-    protected function buildManager($standalone = false)
+    protected function buildManager()
     {
         $config = new Configuration();
 
-        $this->setupAnnotationMetadata($standalone);
+        $this->setupAnnotationMetadata();
         $config->setMetadataDriverImpl($this->getMetadataMappingDriver());
 
         $config->setProxyDir($this->getProxiesPath());
@@ -191,8 +189,6 @@ class RelationalBuilder extends AbstractManagerBuilder
 
     /**
      * {@inheritdoc}
-     *
-     * @return AnnotationDriver
      */
     protected function getAnnotationMetadataDriver(array $paths)
     {
@@ -201,8 +197,6 @@ class RelationalBuilder extends AbstractManagerBuilder
 
     /**
      * {@inheritdoc}
-     *
-     * @return XmlDriver
      */
     protected function getXmlMetadataDriver(array $paths, $extension = null)
     {
@@ -211,8 +205,6 @@ class RelationalBuilder extends AbstractManagerBuilder
 
     /**
      * {@inheritdoc}
-     *
-     * @return YamlDriver
      */
     protected function getYamlMetadataDriver(array $paths, $extension = null)
     {
@@ -224,19 +216,21 @@ class RelationalBuilder extends AbstractManagerBuilder
      *
      * @throws \InvalidArgumentException
      *
-     * @return Cache
+     * @return CacheProvider
      */
     public function getQueryCacheDriver()
     {
-        if (!$this->queryCacheDriver instanceof Cache) {
+        if (!$this->queryCacheDriver instanceof CacheProvider) {
             $queryCacheDriver = $this->getOption('query_cache_driver');
+            $cacheNamespace = (string) $this->getOption('query_cache_namespace');
 
-            if (!$queryCacheDriver instanceof Cache) {
-                $queryCacheDriver = clone $this->getCacheDriver();
+            if (!$queryCacheDriver instanceof CacheProvider) {
+                $queryCacheDriver = clone $this->getMetadataCacheDriver();
+                $queryCacheDriver->setNamespace($cacheNamespace);
             }
 
             if ($queryCacheDriver->getNamespace() === '') {
-                $queryCacheDriver->setNamespace((string) $this->getOption('query_cache_namespace'));
+                $queryCacheDriver->setNamespace($cacheNamespace);
             }
 
             $this->queryCacheDriver = $queryCacheDriver;
@@ -248,9 +242,9 @@ class RelationalBuilder extends AbstractManagerBuilder
     /**
      * Set query cache driver.
      *
-     * @param Cache $queryCacheDriver
+     * @param CacheProvider $queryCacheDriver
      */
-    public function setQueryCacheDriver(Cache $queryCacheDriver)
+    public function setQueryCacheDriver(CacheProvider $queryCacheDriver)
     {
         $this->queryCacheDriver = $queryCacheDriver;
     }
@@ -260,19 +254,21 @@ class RelationalBuilder extends AbstractManagerBuilder
      *
      * @throws \InvalidArgumentException
      *
-     * @return Cache
+     * @return CacheProvider
      */
     public function getResultCacheDriver()
     {
-        if (!$this->resultCacheDriver instanceof Cache) {
+        if (!$this->resultCacheDriver instanceof CacheProvider) {
             $resultCacheDriver = $this->getOption('result_cache_driver');
+            $cacheNamespace = (string) $this->getOption('result_cache_namespace');
 
-            if (!$resultCacheDriver instanceof Cache) {
-                $resultCacheDriver = clone $this->getCacheDriver();
+            if (!$resultCacheDriver instanceof CacheProvider) {
+                $resultCacheDriver = clone $this->getMetadataCacheDriver();
+                $resultCacheDriver->setNamespace($cacheNamespace);
             }
 
             if ($resultCacheDriver->getNamespace() === '') {
-                $resultCacheDriver->setNamespace((string) $this->getOption('result_cache_namespace'));
+                $resultCacheDriver->setNamespace($cacheNamespace);
             }
 
             $this->resultCacheDriver = $resultCacheDriver;
@@ -284,9 +280,9 @@ class RelationalBuilder extends AbstractManagerBuilder
     /**
      * Set result cache driver.
      *
-     * @param Cache $resultCacheDriver
+     * @param CacheProvider $resultCacheDriver
      */
-    public function setResultCacheDriver(Cache $resultCacheDriver)
+    public function setResultCacheDriver(CacheProvider $resultCacheDriver)
     {
         $this->resultCacheDriver = $resultCacheDriver;
     }

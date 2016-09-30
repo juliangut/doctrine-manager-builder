@@ -7,7 +7,7 @@
  * @author Julián Gutiérrez <juliangut@gmail.com>
  */
 
-namespace Jgut\Doctrine\ManagerBuilder\Test;
+namespace Jgut\Doctrine\ManagerBuilder\Tests;
 
 use Doctrine\ODM\CouchDB\DocumentManager;
 use Jgut\Doctrine\ManagerBuilder\CouchDBBuilder;
@@ -17,6 +17,8 @@ use Symfony\Component\Console\Helper\HelperSet;
 
 /**
  * CouchDB entity builder tests.
+ *
+ * @group couchdb
  */
 class CouchDBBuilderTest extends \PHPUnit_Framework_TestCase
 {
@@ -48,7 +50,7 @@ class CouchDBBuilderTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $this->builder->getManager(true, true);
+        $this->builder->getManager(true);
     }
 
     /**
@@ -75,7 +77,7 @@ class CouchDBBuilderTest extends \PHPUnit_Framework_TestCase
         );
         $this->builder->setOption('lucene_handler_name', 'lucene');
 
-        static::assertInstanceOf(DocumentManager::class, $this->builder->getManager(true));
+        static::assertInstanceOf(DocumentManager::class, $this->builder->getManager());
     }
 
     public function testConsoleCommands()
@@ -90,8 +92,8 @@ class CouchDBBuilderTest extends \PHPUnit_Framework_TestCase
 
         return array_walk(
             $commands,
-            function ($command) {
-                static::assertInstanceOf(Command::class, $command);
+            function (Command $command) {
+                static::assertEquals(1, preg_match('/^test:(odm:)?/', $command->getName()));
             }
         );
     }

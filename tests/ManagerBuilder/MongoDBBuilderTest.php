@@ -7,7 +7,7 @@
  * @author Julián Gutiérrez <juliangut@gmail.com>
  */
 
-namespace Jgut\Doctrine\ManagerBuilder\Test;
+namespace Jgut\Doctrine\ManagerBuilder\Tests;
 
 use Doctrine\MongoDB\Connection;
 use Doctrine\ODM\MongoDB\DocumentManager;
@@ -18,6 +18,8 @@ use Symfony\Component\Console\Helper\HelperSet;
 
 /**
  * MongoDB entity builder tests.
+ *
+ * @group mongodb
  */
 class MongoDBBuilderTest extends \PHPUnit_Framework_TestCase
 {
@@ -50,7 +52,7 @@ class MongoDBBuilderTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $this->builder->getManager(true, true);
+        $this->builder->getManager(true);
     }
 
     /**
@@ -80,7 +82,7 @@ class MongoDBBuilderTest extends \PHPUnit_Framework_TestCase
         $this->builder->setOption('default_database', 'ddbb');
         $this->builder->setOption('logger_callable', 'class_exists');
 
-        static::assertInstanceOf(DocumentManager::class, $this->builder->getManager(true));
+        static::assertInstanceOf(DocumentManager::class, $this->builder->getManager());
     }
 
     public function testConsoleCommands()
@@ -95,8 +97,8 @@ class MongoDBBuilderTest extends \PHPUnit_Framework_TestCase
 
         return array_walk(
             $commands,
-            function ($command) {
-                static::assertInstanceOf(Command::class, $command);
+            function (Command $command) {
+                static::assertEquals(1, preg_match('/^test:odm:/', $command->getName()));
             }
         );
     }
