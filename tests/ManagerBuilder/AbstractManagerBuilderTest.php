@@ -37,7 +37,7 @@ class AbstractManagerBuilderTest extends \PHPUnit_Framework_TestCase
     {
         $options = [
             'proxies_namespace' => 'MyTestProxyNamespace',
-            'auto_generate_proxies' => AbstractProxyFactory::AUTOGENERATE_ALWAYS,
+            'proxies_auto_generation' => AbstractProxyFactory::AUTOGENERATE_ALWAYS,
         ];
 
         /* @var AbstractManagerBuilder $objectBuilder */
@@ -49,7 +49,7 @@ class AbstractManagerBuilderTest extends \PHPUnit_Framework_TestCase
         $objectBuilder->setOptions($options);
 
         self::assertEquals($options, $objectBuilder->getOptions());
-        self::assertTrue($objectBuilder->hasOption('auto_generate_proxies'));
+        self::assertTrue($objectBuilder->hasOption('proxies_auto_generation'));
         self::assertEquals('MyTestProxyNamespace', $objectBuilder->getOption('proxies_namespace'));
 
         $objectBuilder->setOption('proxies_path', [__DIR__]);

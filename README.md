@@ -117,7 +117,7 @@ $documentManager = $couchDBBuilder->getManager();
 * `proxies_namespace` string for proxies namespace
 * `proxies_auto_generation` integer indicating proxy auto generation behavior
 * `metadata_cache_driver` \Doctrine\Common\Cache\CacheProvider metadata cache driver
-* `metadata_cache_namespace` string for metadata cache namespace
+* `metadata_cache_namespace` string for metadata cache namespace (different for each type of manager)
 * `event_manager` a configured `Doctrine\Common\EventManager`
 
 ### Relational ORM Entity Manager
@@ -140,8 +140,11 @@ $documentManager = $couchDBBuilder->getManager();
 
 * `connection` **REQUIRED** array of \MongoClient configurations (server and options) or a \Doctrine\MongoDB\Connection
 * `hydrators_path` path where Doctrine creates its hydrator classes, defaults to /tmp
-* `hydrators_namespace` string for hydrators namespace, defaults to 'DoctrineODMHydrator'
+* `hydrators_namespace` string for hydrators namespace, defaults to 'DoctrineMongoDBODMHydrator'
 * `hydrators_auto_generation` integer indicating hydrators auto generation behavior
+* `persistent_collections_path` path where Doctrine creates its persistent collection classes, defaults to /tmp
+* `persistent_collections_namespace` string for persistent collections namespace, defaults to 'DoctrineMongoDBODMPersistentCollection'
+* `persistent_collections_auto_generation` integer persistent collections auto generation behavior
 * `default_repository_class` \Doctrine\ODM\MongoDB\DocumentRepository
 * `default_database` **REQUIRED** default database to be used in case none specified
 * `logger_callable` valid callable
