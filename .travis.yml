@@ -15,14 +15,14 @@ matrix:
 
 env:
   global:
-    - COMPOSER_GLOBAL_FLAGS='--prefer-source --no-interaction --no-scripts --no-progress'
+    - COMPOSER_GLOBAL_FLAGS="--prefer-source --no-interaction --no-scripts --no-progress"
   matrix:
-    - COMPOSER_FLAGS='--prefer-stable'
+    - COMPOSER_FLAGS="--prefer-stable"
 
 before_install:
   - if [[ "$TRAVIS_PHP_VERSION" != "5.6" ]]; then echo "extension = mongodb.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini ; fi
   - if [[ "$TRAVIS_PHP_VERSION" == "5.6" ]]; then echo "extension = mongo.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini ; fi
-  - if [[ -f ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/xdebug.ini ]] then phpenv config-rm xdebug.ini ; fi
+  - if [[ -f "~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/xdebug.ini" ]] then phpenv config-rm xdebug.ini ; fi
   - composer global require hirak/prestissimo
   - composer self-update --stable --no-progress
 
