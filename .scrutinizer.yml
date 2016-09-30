@@ -29,7 +29,7 @@ tools:
     config:
       standard: 'PSR2'
     filter:
-      paths: [src, tests]
+      paths: [src/*, bin/*, tests/*]
   php_mess_detector:
     enabled: true
     config:

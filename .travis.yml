@@ -19,7 +19,7 @@ env:
   global:
     - COMPOSER_GLOBAL_FLAGS='--prefer-source --no-interaction --no-scripts --no-progress --no-suggest'
   matrix:
-    - COMPOSER_FLAGS='--prefer-lower'
+    - COMPOSER_FLAGS='--prefer-lowest'
     - COMPOSER_FLAGS='--prefer-stable'
 
 before_install:
