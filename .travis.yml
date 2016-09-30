@@ -23,8 +23,8 @@ env:
     - COMPOSER_FLAGS='--prefer-stable'
 
 before_install:
-  - if [[ "$TRAVIS_PHP_VERSION" != "5.6" ]]; then echo "extension = mongodb.so" >> ~/.phpenv/versions/$TRAVIS_PHP_VERSION/etc/php.ini ; fi
-  - if [[ "$TRAVIS_PHP_VERSION" == "5.6" ]]; then echo "extension = mongo.so" >> ~/.phpenv/versions/$TRAVIS_PHP_VERSION/etc/php.ini ; fi
+  - if [[ "$TRAVIS_PHP_VERSION" != "5.6" ]]; then echo "extension = mongodb.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini ; fi
+  - if [[ "$TRAVIS_PHP_VERSION" == "5.6" ]]; then echo "extension = mongo.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini ; fi
   - phpenv config-rm xdebug.ini
   - composer global require hirak/prestissimo
   - composer self-update --stable --no-progress
