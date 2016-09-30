@@ -40,7 +40,6 @@ class CouchDBBuilder extends AbstractManagerBuilder
             'connection' => [], // Array or \Doctrine\CouchDB\CouchDBClient
             'proxies_namespace' => 'DoctrineCouchDBODMProxy',
             'metadata_cache_namespace' => 'DoctrineCouchDBODMMetadataCache',
-            //'lucene_handler_name' => null,
         ];
     }
 

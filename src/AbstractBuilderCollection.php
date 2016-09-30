@@ -12,7 +12,7 @@ namespace Jgut\Doctrine\ManagerBuilder;
 /**
  * Builder collection.
  */
-class AbstractBuilderCollection
+abstract class AbstractBuilderCollection
 {
     /**
      * Builders.

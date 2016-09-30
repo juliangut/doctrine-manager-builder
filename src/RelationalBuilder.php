@@ -84,18 +84,9 @@ class RelationalBuilder extends AbstractManagerBuilder
             'connection' => [], // Array or \Doctrine\DBAL\Connection
             'proxies_namespace' => 'DoctrineRDBMSORMProxy',
             'metadata_cache_namespace' => 'DoctrineRDBMSORMMetadataCache',
-            //'query_cache_driver' => null,
             'query_cache_namespace' => 'DoctrineRDBMSORMQueryCache',
-            //'result_cache_driver' => null,
             'result_cache_namespace' => 'DoctrineRDBMSORMResultCache',
             'default_repository_class' => EntityRepository::class,
-            //'naming_strategy' => null, // Doctrine\ORM\Mapping\UnderscoreNamingStrategy(CASE_LOWER)
-            //'quote_strategy' => null, // Doctrine\ORM\Mapping\DefaultQuoteStrategy
-            //'sql_logger' => null,
-            //'custom_string_functions' => [],
-            //'custom_numeric_functions' => [],
-            //'custom_datetime_functions' => [],
-            //'custom_types' => [],
         ];
     }
 

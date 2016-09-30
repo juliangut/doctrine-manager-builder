@@ -19,7 +19,6 @@ env:
   global:
     - COMPOSER_GLOBAL_FLAGS='--prefer-source --no-interaction --no-scripts --no-progress'
   matrix:
-    - COMPOSER_FLAGS='--prefer-lowest'
     - COMPOSER_FLAGS='--prefer-stable'
 
 before_install:
@@ -31,7 +30,7 @@ before_install:
 
 install:
   - travis_retry composer update --profile $COMPOSER_GLOBAL_FLAGS $COMPOSER_FLAGS
-  - if [[ "$TRAVIS_PHP_VERSION" != "5.6" ]]; then travis_retry composer require alcaeus/mongo-php-adapter --profile $COMPOSER_GLOBAL_FLAGS --ignore-platform-reqs ; fi
+  - if [[ "$TRAVIS_PHP_VERSION" != "5.6" ]]; then travis_retry composer require alcaeus/mongo-php-adapter $COMPOSER_GLOBAL_FLAGS --ignore-platform-reqs ; fi
   - if [[ "$TRAVIS_PHP_VERSION" == "5.6" ]]; then travis_retry composer require satooshi/php-coveralls:dev-master $COMPOSER_GLOBAL_FLAGS ; fi
 
 script:

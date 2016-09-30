@@ -51,14 +51,10 @@ class MongoDBBuilder extends AbstractManagerBuilder
             'proxies_namespace' => 'DoctrineMongoDBODMProxy',
             'metadata_cache_namespace' => 'DoctrineMongoDBODMMetadataCache',
             'default_repository_class' => DocumentRepository::class,
-            //'hydrators_path' => null,
             'hydrators_namespace' => 'DoctrineMongoDBODMHydrator',
             'hydrators_auto_generation' => AbstractProxyFactory::AUTOGENERATE_NEVER,
-            //'persistent_collections_path' => '',
             'persistent_collections_namespace' => 'DoctrineMongoDBODMPersistentCollection',
             'persistent_collections_auto_generation' => AbstractProxyFactory::AUTOGENERATE_NEVER,
-            //'default_database' => null,
-            //'logger_callable' => null,
         ];
     }
 

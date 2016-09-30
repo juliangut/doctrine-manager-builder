@@ -33,17 +33,7 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
      * @var array
      */
     private $defaultOptions = [
-        //'connection' => [],
-        //'annotation_files' => [],
-        //'annotation_namespaces' => [],
-        //'annotation_autoloaders' => [],
-        //'metadata_mapping' => [],
-        //'proxies_path' => null,
-        //'proxies_namespace' => '',
         'proxies_auto_generation' => AbstractProxyFactory::AUTOGENERATE_NEVER,
-        //'metadata_cache_driver' => null,
-        //'metadata_cache_namespace' => '',
-        //'event_manager' => null,
     ];
 
     /**
