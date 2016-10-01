@@ -27,9 +27,19 @@ gulp.task('test',  function() {
   );
 });
 
-gulp.task('fix', ['phpcs-fixer']);
+gulp.task('fix', function() {
+  runSequence(
+    'phplint',
+    'phpcs-fixer'
+  );
+});
 
-gulp.task('security', ['composer-outdated']);
+gulp.task('security', function() {
+  runSequence(
+    'phplint',
+    'composer-outdated'
+  );
+});
 
 gulp.task('build', ['test'], function() {
   console.log('Task ready to be implemented');
