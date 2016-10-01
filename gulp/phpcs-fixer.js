@@ -18,7 +18,7 @@ gulp.task('phpcs-fixer', function(done) {
 });
 
 gulp.task('phpcs-fixer-test', function(done) {
-  exec(cmd + ' --dry-run', function (error, stdout, stderr) {
+  exec(cmd + ' --dry-run --verbose', function (error, stdout, stderr) {
     if (error) {
       console.log(stderr);
 
