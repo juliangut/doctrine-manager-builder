@@ -153,7 +153,7 @@ class MongoDBBuilder extends AbstractManagerBuilder
         $connection = $this->getOption('connection');
 
         switch (true) {
-            case (is_array($connection)):
+            case is_array($connection):
                 $connection = new Connection(
                     array_key_exists('server', $connection) ? $connection['server'] : null,
                     array_key_exists('options', $connection) ? $connection['options'] : [],
@@ -162,7 +162,7 @@ class MongoDBBuilder extends AbstractManagerBuilder
                 );
                 break;
 
-            case ($connection instanceof Connection):
+            case $connection instanceof Connection:
                 if ($connection->getEventManager() !== $this->getEventManager()) {
                     throw new \RuntimeException(
                         'Cannot use different EventManager instances for DocumentManager and Connection.'
