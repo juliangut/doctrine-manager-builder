@@ -1,9 +1,11 @@
 <?php
-/**
- * doctrine-manager-builder (https://github.com/juliangut/doctrine-manager-builder)
- * Doctrine2 managers builder
+
+/*
+ * doctrine-manager-builder (https://github.com/juliangut/doctrine-manager-builder).
+ * Doctrine2 managers builder.
  *
  * @license BSD-3-Clause
+ * @link https://github.com/juliangut/doctrine-manager-builder
  * @author Julián Gutiérrez <juliangut@gmail.com>
  */
 
@@ -29,7 +31,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\HelperSet;
 
 /**
- * Doctrine RDBMS Entity Manager builder
+ * Doctrine RDBMS Entity Manager builder.
  */
 class RelationalBuilder extends AbstractManagerBuilder
 {
@@ -279,7 +281,7 @@ class RelationalBuilder extends AbstractManagerBuilder
     }
 
     /**
-     * Get default repository class name
+     * Get default repository class name.
      *
      * @return string|null
      */

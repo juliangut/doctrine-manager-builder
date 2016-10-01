@@ -1,7 +1,7 @@
 # language: php
 
 filter:
-  paths: [src/*, bin/*]
+  paths: [bin/*, src/*]
   excluded_paths: [tests/*, vendor/*]
 
 before_commands:
@@ -29,7 +29,7 @@ tools:
     config:
       standard: 'PSR2'
     filter:
-      paths: [src/*, bin/*, tests/*]
+      paths: [bin/*, src/*, tests/*]
   php_mess_detector:
     enabled: true
     config:

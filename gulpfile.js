@@ -16,7 +16,7 @@ tasks.forEach(function(task) {
 gulp.task('qa', function() {
   runSequence(
     'phplint',
-    ['phpcs', 'phpmd', 'phpcpd']
+    ['phpcs', 'phpcs-fixer-test', 'phpmd', 'phpcpd']
   );
 });
 
@@ -26,6 +26,8 @@ gulp.task('test',  function() {
     'phpunit'
   );
 });
+
+gulp.task('fix', ['phpcs-fixer']);
 
 gulp.task('security', ['composer-outdated']);
 

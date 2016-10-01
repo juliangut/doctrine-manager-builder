@@ -8,7 +8,7 @@ var phpunit = require('gulp-phpunit');
 gulp.task('phpunit', function() {
   return gulp.src('phpunit.xml')
     .pipe(phpunit('vendor/bin/phpunit', {
-      coverageHtml: configbuild + '/coverage'
+      coverageHtml: config.build + '/coverage'
     }))
     .on('error', console.error);
 });

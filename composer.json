@@ -35,6 +35,7 @@
     "doctrine/orm": "^2.0",
     "doctrine/mongodb-odm": "^1.0",
     "doctrine/couchdb-odm": "dev-master",
+    "friendsofphp/php-cs-fixer": "^1.0",
     "phpmd/phpmd": "^2.0",
     "phpunit/phpunit": "^4.5|^5.0",
     "sebastian/phpcpd": "^2.0",
@@ -56,8 +57,7 @@
     }
   },
   "bin": [
-    "bin/doctrine-manager",
-    "bin/doctrine-manager.php"
+    "bin/doctrine-manager"
   ],
   "config": {
     "preferred-install": "dist"
