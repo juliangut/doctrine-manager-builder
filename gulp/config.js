@@ -5,6 +5,6 @@ module.exports = {
   bin: 'bin',
   src: 'src',
   tests: 'tests',
-  build: '.build',
+  build: 'build',
   public: 'public'
 };
