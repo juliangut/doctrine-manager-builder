@@ -33,7 +33,7 @@ class DefaultRepositoryFactory implements RepositoryFactory
         $repositoryHash =
             $documentManager->getClassMetadata($documentName)->getName() . spl_object_hash($documentManager);
 
-        if (isset($this->repositoryList[$repositoryHash])) {
+        if (array_key_exists($repositoryHash, $this->repositoryList)) {
             return $this->repositoryList[$repositoryHash];
         }
 
