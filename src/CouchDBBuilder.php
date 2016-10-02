@@ -14,10 +14,12 @@ namespace Jgut\Doctrine\ManagerBuilder;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\CouchDB\Tools\Console\Helper\CouchDBHelper;
 use Doctrine\ODM\CouchDB\Configuration;
-use Doctrine\ODM\CouchDB\DocumentManager;
+use Doctrine\ODM\CouchDB\DocumentRepository;
 use Doctrine\ODM\CouchDB\Mapping\Driver\AnnotationDriver;
 use Doctrine\ODM\CouchDB\Mapping\Driver\XmlDriver;
 use Doctrine\ODM\CouchDB\Mapping\Driver\YamlDriver;
+use Jgut\Doctrine\ManagerBuilder\CouchDB\DocumentManager;
+use Jgut\Doctrine\ManagerBuilder\CouchDB\Repository\DefaultRepositoryFactory;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\HelperSet;
 
@@ -42,6 +44,7 @@ class CouchDBBuilder extends AbstractManagerBuilder
             'connection' => [], // Array or \Doctrine\CouchDB\CouchDBClient
             'proxies_namespace' => 'DoctrineCouchDBODMProxy',
             'metadata_cache_namespace' => 'DoctrineCouchDBODMMetadataCache',
+            'default_repository_class' => DocumentRepository::class,
         ];
     }
 
@@ -84,7 +87,7 @@ class CouchDBBuilder extends AbstractManagerBuilder
      * @throws \RuntimeException
      * @throws \UnexpectedValueException
      *
-     * @return DocumentManager
+     * @return \Doctrine\ODM\CouchDB\DocumentManager
      */
     protected function buildManager()
     {
@@ -103,7 +106,17 @@ class CouchDBBuilder extends AbstractManagerBuilder
             $config->setLuceneHandlerName($this->getLuceneHandlerName());
         }
 
-        return DocumentManager::create($this->getOption('connection'), $config, $this->getEventManager());
+        $documentManager = DocumentManager::create($this->getOption('connection'), $config, $this->getEventManager());
+
+        if ($this->getRepositoryFactory() !== null) {
+            $documentManager->setRepositoryFactory($this->getRepositoryFactory());
+        }
+
+        if ($this->getDefaultRepositoryClass() !== null) {
+            $documentManager->setDefaultRepositoryClassName($this->getDefaultRepositoryClass());
+        }
+
+        return $documentManager;
     }
 
     /**
@@ -128,6 +141,31 @@ class CouchDBBuilder extends AbstractManagerBuilder
     protected function getYamlMetadataDriver(array $paths, $extension = null)
     {
         return new YamlDriver($paths, $extension ?: YamlDriver::DEFAULT_FILE_EXTENSION);
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @throws \InvalidArgumentException
+     *
+     * @return DefaultRepositoryFactory|null
+     */
+    protected function getRepositoryFactory()
+    {
+        if (!array_key_exists('repository_factory', $this->options)) {
+            return;
+        }
+
+        $repositoryFactory = $this->options['repository_factory'];
+
+        if (!$repositoryFactory instanceof DefaultRepositoryFactory) {
+            throw new \InvalidArgumentException(sprintf(
+                'Invalid factory class "%s". It must be a Jgut\Doctrine\ManagerBuilder\CouchDB\RepositoryFactory.',
+                get_class($repositoryFactory)
+            ));
+        }
+
+        return $repositoryFactory;
     }
 
     /**

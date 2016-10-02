@@ -22,7 +22,7 @@ Frees you from the tedious work of configuring Doctrine's managers, ORM Entity M
 composer require juliangut/doctrine-manager-builder
 ```
 
-If using on PHP >= 7.0
+If using MongoDB on PHP >= 7.0
 
 ```
 composer require alcaeus/mongo-php-adapter --ignore-platform-reqs
@@ -127,7 +127,8 @@ $documentManager = $couchDBBuilder->getManager();
 * `query_cache_namespace` string for query cache namespace
 * `result_cache_driver` \Doctrine\Common\Cache\CacheProvider result cache driver, defaults to `cache_driver`
 * `result_cache_namespace` string for result cache namespace
-* `default_repository_class` \Doctrine\ORM\EntityRepository
+* `repository_factory` \Doctrine\ODM\MongoDB\DocumentRepository
+* `default_repository_class` \Doctrine\ORM\Repository\RepositoryFactory
 * `naming_strategy` a `\Doctrine\ORM\Mapping\NamingStrategy`, defaults to `UnderscoreNamingStrategy`
 * `quote_strategy` a `\Doctrine\ORM\Mapping\QuoteStrategy`, defaults to `DefaultQuoteStrategy`
 * `sql_logger` a `\Doctrine\DBAL\Logging\SQLLogger`
@@ -139,19 +140,22 @@ $documentManager = $couchDBBuilder->getManager();
 ### MongoDB ODM Document Manager
 
 * `connection` **REQUIRED** array of \MongoClient configurations (server and options) or a \Doctrine\MongoDB\Connection
+* `default_database` **REQUIRED** default database to be used in case none specified
 * `hydrators_path` path where Doctrine creates its hydrator classes, defaults to /tmp
 * `hydrators_namespace` string for hydrators namespace, defaults to 'DoctrineMongoDBODMHydrator'
 * `hydrators_auto_generation` integer indicating hydrators auto generation behavior
 * `persistent_collections_path` path where Doctrine creates its persistent collection classes, defaults to /tmp
 * `persistent_collections_namespace` string for persistent collections namespace, defaults to 'DoctrineMongoDBODMPersistentCollection'
 * `persistent_collections_auto_generation` integer persistent collections auto generation behavior
+* `repository_factory` \Doctrine\ODM\MongoDB\Repository\RepositoryFactory
 * `default_repository_class` \Doctrine\ODM\MongoDB\DocumentRepository
-* `default_database` **REQUIRED** default database to be used in case none specified
 * `logger_callable` valid callable
 
 ### CouchDB ODM Document Manager
 
 * `connection` **REQUIRED** array of \Doctrine\CouchDB\CouchDBClient configurations or a \Doctrine\CouchDB\CouchDBClient
+* `repository_factory` \Jgut\Doctrine\ManagerBuilder\CouchDB\Repository\RepositoryFactory
+* `default_repository_class` \Doctrine\ODM\CouchDB\DocumentRepository
 * `lucene_handler_name` Apache Lucene handler name
 
 ### Considerations

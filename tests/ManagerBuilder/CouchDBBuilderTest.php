@@ -12,6 +12,7 @@
 namespace Jgut\Doctrine\ManagerBuilder\Tests;
 
 use Doctrine\ODM\CouchDB\DocumentManager;
+use Jgut\Doctrine\ManagerBuilder\CouchDB\Repository\DefaultRepositoryFactory;
 use Jgut\Doctrine\ManagerBuilder\CouchDBBuilder;
 use Jgut\Doctrine\ManagerBuilder\ManagerBuilder;
 use Symfony\Component\Console\Command\Command;
@@ -70,6 +71,22 @@ class CouchDBBuilderTest extends \PHPUnit_Framework_TestCase
         $this->builder->getManager();
     }
 
+    /**
+     * @expectedException \InvalidArgumentException
+     * @expectedExceptionMessageRegExp /^Invalid factory class ".+"\. It must be a Jgut\\Doctrine\\ManagerBuilder\\CouchDB\\RepositoryFactory\.$/
+     */
+    public function testBadRepositoryFactory()
+    {
+        $this->builder->setOption('connection', ['dbname' => 'ddbb']);
+        $this->builder->setOption(
+            'metadata_mapping',
+            [['type' => ManagerBuilder::METADATA_MAPPING_ANNOTATION, 'path' => __DIR__]]
+        );
+        $this->builder->setOption('repository_factory', new \stdClass);
+
+        $this->builder->getManager();
+    }
+
     public function testManager()
     {
         $this->builder->setOption('connection', ['dbname' => 'ddbb']);
@@ -77,6 +94,7 @@ class CouchDBBuilderTest extends \PHPUnit_Framework_TestCase
             'metadata_mapping',
             [['type' => ManagerBuilder::METADATA_MAPPING_ANNOTATION, 'path' => __DIR__]]
         );
+        $this->builder->setOption('repository_factory', new DefaultRepositoryFactory);
         $this->builder->setOption('lucene_handler_name', 'lucene');
 
         static::assertInstanceOf(DocumentManager::class, $this->builder->getManager());

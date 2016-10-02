@@ -26,6 +26,7 @@ use Doctrine\ORM\Mapping\Driver\YamlDriver;
 use Doctrine\ORM\Mapping\NamingStrategy;
 use Doctrine\ORM\Mapping\QuoteStrategy;
 use Doctrine\ORM\Mapping\UnderscoreNamingStrategy;
+use Doctrine\ORM\Repository\RepositoryFactory;
 use Doctrine\ORM\Tools\Console\Helper\EntityManagerHelper;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\HelperSet;
@@ -157,6 +158,10 @@ class RelationalBuilder extends AbstractManagerBuilder
         $config->setQueryCacheImpl($this->getQueryCacheDriver());
         $config->setResultCacheImpl($this->getResultCacheDriver());
 
+        if ($this->getRepositoryFactory() !== null) {
+            $config->setRepositoryFactory($this->getRepositoryFactory());
+        }
+
         if ($this->getDefaultRepositoryClass() !== null) {
             $config->setDefaultRepositoryClassName($this->getDefaultRepositoryClass());
         }
@@ -202,6 +207,31 @@ class RelationalBuilder extends AbstractManagerBuilder
     protected function getYamlMetadataDriver(array $paths, $extension = null)
     {
         return new YamlDriver($paths, $extension ?: YamlDriver::DEFAULT_FILE_EXTENSION);
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @throws \InvalidArgumentException
+     *
+     * @return RepositoryFactory|null
+     */
+    protected function getRepositoryFactory()
+    {
+        if (!array_key_exists('repository_factory', $this->options)) {
+            return;
+        }
+
+        $repositoryFactory = $this->options['repository_factory'];
+
+        if (!$repositoryFactory instanceof RepositoryFactory) {
+            throw new \InvalidArgumentException(sprintf(
+                'Invalid factory class "%s". It must be a Doctrine\ORM\Repository\RepositoryFactory.',
+                get_class($repositoryFactory)
+            ));
+        }
+
+        return $repositoryFactory;
     }
 
     /**
@@ -278,18 +308,6 @@ class RelationalBuilder extends AbstractManagerBuilder
     public function setResultCacheDriver(CacheProvider $resultCacheDriver)
     {
         $this->resultCacheDriver = $resultCacheDriver;
-    }
-
-    /**
-     * Get default repository class name.
-     *
-     * @return string|null
-     */
-    protected function getDefaultRepositoryClass()
-    {
-        return array_key_exists('default_repository_class', $this->options)
-            ? (string) $this->options['default_repository_class']
-            : null;
     }
 
     /**

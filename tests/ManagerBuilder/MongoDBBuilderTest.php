@@ -13,6 +13,7 @@ namespace Jgut\Doctrine\ManagerBuilder\Tests;
 
 use Doctrine\MongoDB\Connection;
 use Doctrine\ODM\MongoDB\DocumentManager;
+use Doctrine\ODM\MongoDB\Repository\DefaultRepositoryFactory;
 use Jgut\Doctrine\ManagerBuilder\ManagerBuilder;
 use Jgut\Doctrine\ManagerBuilder\MongoDBBuilder;
 use Symfony\Component\Console\Command\Command;
@@ -58,6 +59,22 @@ class MongoDBBuilderTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * @expectedException \InvalidArgumentException
+     * @expectedExceptionMessageRegExp /^Invalid factory class ".+"\. It must be a Doctrine\\ODM\\MongoDB\\Repository\\RepositoryFactory\.$/
+     */
+    public function testBadRepositoryFactory()
+    {
+        $this->builder->setOption('connection', new Connection('localhost'));
+        $this->builder->setOption(
+            'metadata_mapping',
+            [['type' => ManagerBuilder::METADATA_MAPPING_ANNOTATION, 'path' => __DIR__]]
+        );
+        $this->builder->setOption('repository_factory', new \stdClass);
+
+        $this->builder->getManager();
+    }
+
+    /**
      * @expectedException \RuntimeException
      * @expectedExceptionMessage Cannot use different EventManager instances for DocumentManager and Connection.
      */
@@ -81,6 +98,7 @@ class MongoDBBuilderTest extends \PHPUnit_Framework_TestCase
             'metadata_mapping',
             [['type' => ManagerBuilder::METADATA_MAPPING_ANNOTATION, 'path' => __DIR__]]
         );
+        $this->builder->setOption('repository_factory', new DefaultRepositoryFactory);
         $this->builder->setOption('default_database', 'ddbb');
         $this->builder->setOption('logger_callable', 'class_exists');
 

@@ -387,6 +387,23 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
     }
 
     /**
+     * Get custom repository factory.
+     */
+    abstract protected function getRepositoryFactory();
+
+    /**
+     * Get default repository class name.
+     *
+     * @return string|null
+     */
+    protected function getDefaultRepositoryClass()
+    {
+        return array_key_exists('default_repository_class', $this->options)
+            ? (string) $this->options['default_repository_class']
+            : null;
+    }
+
+    /**
      * Retrieve proxies path.
      *
      * @return string

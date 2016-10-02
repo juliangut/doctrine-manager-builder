@@ -18,6 +18,7 @@ use Doctrine\Common\Persistence\Mapping\Driver\StaticPHPDriver;
 use Doctrine\DBAL\Logging\EchoSQLLogger;
 use Doctrine\DBAL\Types\StringType;
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\Repository\DefaultRepositoryFactory;
 use Jgut\Doctrine\ManagerBuilder\ManagerBuilder;
 use Jgut\Doctrine\ManagerBuilder\RelationalBuilder;
 use Symfony\Component\Console\Command\Command;
@@ -179,6 +180,25 @@ class RelationalBuilderTest extends \PHPUnit_Framework_TestCase
         $this->builder->getManager(true);
     }
 
+    /**
+     * @expectedException \InvalidArgumentException
+     * @expectedExceptionMessageRegExp /^Invalid factory class ".+"\. It must be a Doctrine\\ORM\\Repository\\RepositoryFactory\.$/
+     */
+    public function testBadRepositoryFactory()
+    {
+        $this->builder->setOption('annotation_files', __FILE__);
+        $this->builder->setOption('annotation_namespaces', ['namespace' => __FILE__]);
+        $this->builder->setOption('annotation_autoloaders', ['class_exists']);
+        $this->builder->setOption('connection', ['driver' => 'pdo_sqlite', 'memory' => true]);
+        $this->builder->setOption(
+            'metadata_mapping',
+            [['type' => ManagerBuilder::METADATA_MAPPING_ANNOTATION, 'path' => __DIR__]]
+        );
+        $this->builder->setOption('repository_factory', new \stdClass);
+
+        $this->builder->getManager();
+    }
+
     public function testManager()
     {
         $this->builder->setOption('annotation_files', __FILE__);
@@ -189,6 +209,7 @@ class RelationalBuilderTest extends \PHPUnit_Framework_TestCase
             'metadata_mapping',
             [['type' => ManagerBuilder::METADATA_MAPPING_ANNOTATION, 'path' => __DIR__]]
         );
+        $this->builder->setOption('repository_factory', new DefaultRepositoryFactory);
         $this->builder->setOption('sql_logger', new EchoSQLLogger);
         $this->builder->setOption('custom_string_functions', 'string');
         $this->builder->setOption('custom_numeric_functions', 'numeric');

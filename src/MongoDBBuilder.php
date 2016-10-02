@@ -20,6 +20,7 @@ use Doctrine\ODM\MongoDB\DocumentRepository;
 use Doctrine\ODM\MongoDB\Mapping\Driver\AnnotationDriver;
 use Doctrine\ODM\MongoDB\Mapping\Driver\XmlDriver;
 use Doctrine\ODM\MongoDB\Mapping\Driver\YamlDriver;
+use Doctrine\ODM\MongoDB\Repository\RepositoryFactory;
 use Doctrine\ODM\MongoDB\Tools\Console\Helper\DocumentManagerHelper;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\HelperSet;
@@ -125,6 +126,10 @@ class MongoDBBuilder extends AbstractManagerBuilder
 
         $config->setMetadataCacheImpl($this->getMetadataCacheDriver());
 
+        if ($this->getRepositoryFactory() !== null) {
+            $config->setRepositoryFactory($this->getRepositoryFactory());
+        }
+
         if ($this->getDefaultRepositoryClass() !== null) {
             $config->setDefaultRepositoryClassName($this->getDefaultRepositoryClass());
         }
@@ -204,6 +209,31 @@ class MongoDBBuilder extends AbstractManagerBuilder
     }
 
     /**
+     * {@inheritdoc}
+     *
+     * @throws \InvalidArgumentException
+     *
+     * @return RepositoryFactory|null
+     */
+    protected function getRepositoryFactory()
+    {
+        if (!array_key_exists('repository_factory', $this->options)) {
+            return;
+        }
+
+        $repositoryFactory = $this->options['repository_factory'];
+
+        if (!$repositoryFactory instanceof RepositoryFactory) {
+            throw new \InvalidArgumentException(sprintf(
+                'Invalid factory class "%s". It must be a Doctrine\ODM\MongoDB\Repository\RepositoryFactory.',
+                get_class($repositoryFactory)
+            ));
+        }
+
+        return $repositoryFactory;
+    }
+
+    /**
      * Retrieve hydrators path.
      *
      * @return string
@@ -265,18 +295,6 @@ class MongoDBBuilder extends AbstractManagerBuilder
     protected function getAutoGeneratePersistentCollection()
     {
         return (int) $this->getOption('persistent_collections_auto_generation');
-    }
-
-    /**
-     * Get default repository class name.
-     *
-     * @return string|null
-     */
-    protected function getDefaultRepositoryClass()
-    {
-        return array_key_exists('default_repository_class', $this->options)
-            ? (string) $this->options['default_repository_class']
-            : null;
     }
 
     /**
