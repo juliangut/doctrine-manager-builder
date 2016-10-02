@@ -182,7 +182,6 @@ class RelationalBuilderTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @expectedException \InvalidArgumentException
-     * @expectedExceptionMessageRegExp /^Invalid factory class ".+"\. It must be a Doctrine\\ORM\\Repository\\RepositoryFactory\.$/
      */
     public function testBadRepositoryFactory()
     {

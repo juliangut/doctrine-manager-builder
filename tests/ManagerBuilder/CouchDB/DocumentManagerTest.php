@@ -31,15 +31,20 @@ class DocumentManagerTest extends \PHPUnit_Framework_TestCase
 
         $documentManager = DocumentManager::create($client);
 
-        self::assertEquals('Doctrine\ODM\CouchDB\DocumentRepository', $documentManager->getDefaultRepositoryClassName());
+        self::assertEquals(
+            'Doctrine\ODM\CouchDB\DocumentRepository',
+            $documentManager->getDefaultRepositoryClassName()
+        );
 
         $documentManager->setDefaultRepositoryClassName('Doctrine\Common\Persistence\ObjectRepository');
-        self::assertEquals('Doctrine\Common\Persistence\ObjectRepository', $documentManager->getDefaultRepositoryClassName());
+        self::assertEquals(
+            'Doctrine\Common\Persistence\ObjectRepository',
+            $documentManager->getDefaultRepositoryClassName()
+        );
     }
 
     /**
      * @expectedException \InvalidArgumentException
-     * @expectedExceptionMessageRegExp /^Invalid repository class ".+"\. It must be a Doctrine\\Common\\Persistence\\ObjectRepository\.$/
      */
     public function testBadRepositoryClassName()
     {

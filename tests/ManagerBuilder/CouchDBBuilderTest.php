@@ -73,7 +73,6 @@ class CouchDBBuilderTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @expectedException \InvalidArgumentException
-     * @expectedExceptionMessageRegExp /^Invalid factory class ".+"\. It must be a Jgut\\Doctrine\\ManagerBuilder\\CouchDB\\RepositoryFactory\.$/
      */
     public function testBadRepositoryFactory()
     {

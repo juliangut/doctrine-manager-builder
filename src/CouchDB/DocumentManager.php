@@ -114,7 +114,9 @@ class DocumentManager extends BaseDocumentManager
         } elseif ($couchParams instanceof CouchDBClient) {
             $couchClient = $couchParams;
         } else {
-            throw new \InvalidArgumentException('Expecting array of instance of CouchDBClient as first argument to DocumentManager::create().');
+            throw new \InvalidArgumentException(
+                'Expecting array of instance of CouchDBClient as first argument to DocumentManager::create().'
+            );
         }
 
         return new static($couchClient, $config, $evm);
