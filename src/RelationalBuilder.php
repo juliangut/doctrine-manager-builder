@@ -28,6 +28,7 @@ use Doctrine\ORM\Mapping\QuoteStrategy;
 use Doctrine\ORM\Mapping\UnderscoreNamingStrategy;
 use Doctrine\ORM\Repository\RepositoryFactory;
 use Doctrine\ORM\Tools\Console\Helper\EntityManagerHelper;
+use Doctrine\ORM\Version;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\HelperSet;
 
@@ -478,8 +479,12 @@ class RelationalBuilder extends AbstractManagerBuilder
             new \Doctrine\ORM\Tools\Console\Command\RunDqlCommand(),
             new \Doctrine\ORM\Tools\Console\Command\ValidateSchemaCommand(),
             new \Doctrine\ORM\Tools\Console\Command\InfoCommand(),
-            new \Doctrine\ORM\Tools\Console\Command\MappingDescribeCommand(),
         ];
+
+        if (Version::compare('2.5') <= 0) {
+            $commands[] = new \Doctrine\ORM\Tools\Console\Command\MappingDescribeCommand();
+        }
+
         $commandPrefix = (string) $this->getName();
 
         if ($commandPrefix !== '') {
