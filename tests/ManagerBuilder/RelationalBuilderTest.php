@@ -13,7 +13,6 @@ namespace Jgut\Doctrine\ManagerBuilder\Tests;
 
 use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\Common\Cache\CacheProvider;
-use Doctrine\Common\Cache\VoidCache;
 use Doctrine\Common\Persistence\Mapping\Driver\StaticPHPDriver;
 use Doctrine\DBAL\Logging\EchoSQLLogger;
 use Doctrine\DBAL\Types\StringType;
@@ -46,7 +45,7 @@ class RelationalBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function testQueryCache()
     {
-        $cacheDriver = $this->getMockBuilder(VoidCache::class)
+        $cacheDriver = $this->getMockBuilder(CacheProvider::class)
             ->disableOriginalConstructor()
             ->setMethodsExcept(['getNamespace', 'setNamespace'])
             ->getMock();
@@ -71,7 +70,7 @@ class RelationalBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function testResultCache()
     {
-        $cacheDriver = $this->getMockBuilder(VoidCache::class)
+        $cacheDriver = $this->getMockBuilder(CacheProvider::class)
             ->disableOriginalConstructor()
             ->setMethodsExcept(['getNamespace', 'setNamespace'])
             ->getMock();
@@ -82,7 +81,7 @@ class RelationalBuilderTest extends \PHPUnit_Framework_TestCase
         self::assertInstanceOf(CacheProvider::class, $this->builder->getResultCacheDriver());
 
         /* @var CacheProvider $cacheDriver */
-        $cacheDriver = $this->getMockBuilder(VoidCache::class)
+        $cacheDriver = $this->getMockBuilder(CacheProvider::class)
             ->disableOriginalConstructor()
             ->getMock();
         $this->builder->setResultCacheDriver($cacheDriver);
