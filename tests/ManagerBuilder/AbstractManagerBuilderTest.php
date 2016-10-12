@@ -12,7 +12,6 @@
 namespace Jgut\Doctrine\ManagerBuilder\Tests;
 
 use Doctrine\Common\Cache\CacheProvider;
-use Doctrine\Common\Cache\VoidCache;
 use Doctrine\Common\EventManager;
 use Doctrine\Common\Proxy\AbstractProxyFactory;
 use Jgut\Doctrine\ManagerBuilder\AbstractManagerBuilder;
@@ -74,7 +73,7 @@ class AbstractManagerBuilderTest extends \PHPUnit_Framework_TestCase
         self::assertInstanceOf(CacheProvider::class, $objectBuilder->getMetadataCacheDriver());
 
         /* @var CacheProvider $metadataCacheDriver */
-        $metadataCacheDriver = $this->getMockBuilder(VoidCache::class)
+        $metadataCacheDriver = $this->getMockBuilder(CacheProvider::class)
             ->disableOriginalConstructor()
             ->getMock();
         $objectBuilder->setMetadataCacheDriver($metadataCacheDriver);
