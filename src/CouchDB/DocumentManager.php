@@ -17,6 +17,7 @@ use Doctrine\CouchDB\CouchDBClient;
 use Doctrine\ODM\CouchDB\Configuration;
 use Doctrine\ODM\CouchDB\DocumentManager as BaseDocumentManager;
 use Jgut\Doctrine\ManagerBuilder\CouchDB\Repository\DefaultRepositoryFactory;
+use Jgut\Doctrine\ManagerBuilder\CouchDB\Repository\RepositoryFactory;
 
 /**
  * Custom Doctrine CouchDB Document Manager.
@@ -54,9 +55,9 @@ class DocumentManager extends BaseDocumentManager
     /**
      * Set repository factory.
      *
-     * @param DefaultRepositoryFactory $repositoryFactory
+     * @param RepositoryFactory $repositoryFactory
      */
-    public function setRepositoryFactory(DefaultRepositoryFactory $repositoryFactory)
+    public function setRepositoryFactory(RepositoryFactory $repositoryFactory)
     {
         $this->repositoryFactory = $repositoryFactory;
     }

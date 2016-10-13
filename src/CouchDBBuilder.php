@@ -19,7 +19,7 @@ use Doctrine\ODM\CouchDB\Mapping\Driver\AnnotationDriver;
 use Doctrine\ODM\CouchDB\Mapping\Driver\XmlDriver;
 use Doctrine\ODM\CouchDB\Mapping\Driver\YamlDriver;
 use Jgut\Doctrine\ManagerBuilder\CouchDB\DocumentManager;
-use Jgut\Doctrine\ManagerBuilder\CouchDB\Repository\DefaultRepositoryFactory;
+use Jgut\Doctrine\ManagerBuilder\CouchDB\Repository\RepositoryFactory;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\HelperSet;
 
@@ -148,7 +148,7 @@ class CouchDBBuilder extends AbstractManagerBuilder
      *
      * @throws \InvalidArgumentException
      *
-     * @return DefaultRepositoryFactory|null
+     * @return RepositoryFactory|null
      */
     protected function getRepositoryFactory()
     {
@@ -158,7 +158,7 @@ class CouchDBBuilder extends AbstractManagerBuilder
 
         $repositoryFactory = $this->options['repository_factory'];
 
-        if (!$repositoryFactory instanceof DefaultRepositoryFactory) {
+        if (!$repositoryFactory instanceof RepositoryFactory) {
             throw new \InvalidArgumentException(sprintf(
                 'Invalid factory class "%s". It must be a Jgut\Doctrine\ManagerBuilder\CouchDB\RepositoryFactory.',
                 get_class($repositoryFactory)
