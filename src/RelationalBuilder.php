@@ -199,7 +199,9 @@ class RelationalBuilder extends AbstractManagerBuilder
      */
     protected function getXmlMetadataDriver(array $paths, $extension = null)
     {
-        return new XmlDriver($paths, $extension ?: XmlDriver::DEFAULT_FILE_EXTENSION);
+        $extension = $extension ?: XmlDriver::DEFAULT_FILE_EXTENSION;
+
+        return new XmlDriver($paths, $extension);
     }
 
     /**
@@ -207,7 +209,9 @@ class RelationalBuilder extends AbstractManagerBuilder
      */
     protected function getYamlMetadataDriver(array $paths, $extension = null)
     {
-        return new YamlDriver($paths, $extension ?: YamlDriver::DEFAULT_FILE_EXTENSION);
+        $extension = $extension ?: YamlDriver::DEFAULT_FILE_EXTENSION;
+
+        return new YamlDriver($paths, $extension);
     }
 
     /**
