@@ -27,7 +27,7 @@ class DocumentManager extends BaseDocumentManager
     /**
      * Repository factory.
      *
-     * @var DefaultRepositoryFactory
+     * @var RepositoryFactory
      */
     protected $repositoryFactory;
 

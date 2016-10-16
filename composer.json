@@ -44,7 +44,7 @@
   },
   "suggest": {
     "doctrine/orm": "^2.0",
-    "doctrine/mongodb-odm": "^1.0",
+    "doctrine/mongodb-odm": "^1.1",
     "doctrine/couchdb-odm": "dev-master"
   },
   "autoload": {
