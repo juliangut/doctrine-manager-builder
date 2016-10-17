@@ -93,18 +93,8 @@ class CouchDBBuilder extends AbstractManagerBuilder
     {
         $config = new Configuration;
 
-        $this->setupAnnotationMetadata();
-        $config->setMetadataDriverImpl($this->getMetadataMappingDriver());
-
-        $config->setProxyDir($this->getProxiesPath());
-        $config->setProxyNamespace($this->getProxiesNamespace());
-        $config->setAutoGenerateProxyClasses($this->getProxiesAutoGeneration());
-
-        $config->setMetadataCacheImpl($this->getMetadataCacheDriver());
-
-        if ($this->getLuceneHandlerName() !== null) {
-            $config->setLuceneHandlerName($this->getLuceneHandlerName());
-        }
+        $this->setUpGeneralConfigurations($config);
+        $this->setUpSpecificConfigurations($config);
 
         $documentManager = DocumentManager::create($this->getOption('connection'), $config, $this->getEventManager());
 
@@ -117,6 +107,35 @@ class CouchDBBuilder extends AbstractManagerBuilder
         }
 
         return $documentManager;
+    }
+
+    /**
+     * Set up general manager configurations.
+     *
+     * @param Configuration $config
+     */
+    protected function setUpGeneralConfigurations(Configuration $config)
+    {
+        $this->setupAnnotationMetadata();
+        $config->setMetadataDriverImpl($this->getMetadataMappingDriver());
+
+        $config->setProxyDir($this->getProxiesPath());
+        $config->setProxyNamespace($this->getProxiesNamespace());
+        $config->setAutoGenerateProxyClasses($this->getProxiesAutoGeneration());
+
+        $config->setMetadataCacheImpl($this->getMetadataCacheDriver());
+    }
+
+    /**
+     * Set up manager specific configurations.
+     *
+     * @param Configuration $config
+     */
+    protected function setUpSpecificConfigurations(Configuration $config)
+    {
+        if ($this->getLuceneHandlerName() !== null) {
+            $config->setLuceneHandlerName($this->getLuceneHandlerName());
+        }
     }
 
     /**

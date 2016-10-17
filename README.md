@@ -119,13 +119,14 @@ $documentManager = $couchDBBuilder->getManager();
 * `metadata_cache_driver` \Doctrine\Common\Cache\CacheProvider metadata cache driver
 * `metadata_cache_namespace` string for metadata cache namespace (different for each type of manager)
 * `event_manager` a configured `Doctrine\Common\EventManager`
+* `event_subscribers` an array of custom `Doctrine\Common\EventSubscriber`
 
 ### Relational ORM Entity Manager
 
 * `connection` **REQUIRED** array of PDO configurations or a \Doctrine\DBAL\Connection. See [supported drivers](http://php.net/manual/en/pdo.drivers.php)
-* `query_cache_driver` \Doctrine\Common\Cache\CacheProvider query cache driver, defaults to `cache_driver`
+* `query_cache_driver` \Doctrine\Common\Cache\CacheProvider query cache driver, defaults to `metadata_cache_driver`
 * `query_cache_namespace` string for query cache namespace
-* `result_cache_driver` \Doctrine\Common\Cache\CacheProvider result cache driver, defaults to `cache_driver`
+* `result_cache_driver` \Doctrine\Common\Cache\CacheProvider result cache driver, defaults to `metadata_cache_driver`
 * `result_cache_namespace` string for result cache namespace
 * `repository_factory` \Doctrine\ODM\MongoDB\DocumentRepository
 * `default_repository_class` \Doctrine\ORM\Repository\RepositoryFactory
@@ -133,6 +134,7 @@ $documentManager = $couchDBBuilder->getManager();
 * `quote_strategy` a `\Doctrine\ORM\Mapping\QuoteStrategy`, defaults to `DefaultQuoteStrategy`
 * `sql_logger` a `\Doctrine\DBAL\Logging\SQLLogger`
 * `custom_types` array of `'type_name' => '\Doctrine\DBAL\Types\Type'`
+* `custom_filters` array of custom `'filter_name' => '\Doctrine\ORM\Query\Filter\SQLFilter'`
 * `string_functions` array of custom `'function_name' => '\Doctrine\ORM\Query\AST\Functions\FunctionNode'` for string DQL functions
 * `numeric_functions` array of custom `'function_name' => '\Doctrine\ORM\Query\AST\Functions\FunctionNode'` for numeric DQL functions
 * `datetime_functions` array of custom `'function_name' => '\Doctrine\ORM\Query\AST\Functions\FunctionNode'` for datetime DQL functions
@@ -150,6 +152,7 @@ $documentManager = $couchDBBuilder->getManager();
 * `repository_factory` \Doctrine\ODM\MongoDB\Repository\RepositoryFactory
 * `default_repository_class` \Doctrine\ODM\MongoDB\DocumentRepository
 * `logger_callable` valid callable
+* `custom_filters` array of custom `'filter_name' => '\Doctrine\ODM\MongoDB\Query\Filter\BsonFilter'`
 
 ### CouchDB ODM Document Manager
 
@@ -191,6 +194,7 @@ use Ramsey\Uuid\Doctrine\UuidType;
 require __DIR__ . '/vendor/autoload.php';
 
 $rdbmsBuilder = new RelationalBuilder([
+    'annotation_autoloaders' => ['class_exists'],
     'connection' => [
         'driver' => 'pdo_sqlite',
         'memory' => true,
@@ -218,12 +222,15 @@ composer require gedmo/doctrine-extensions
 ```php
 use Gedmo\DoctrineExtensions;
 use Gedmo\Sluggable\SluggableListener;
+use Gedmo\SoftDeleteable\Filter\SoftDeleteableFilter;
+use Gedmo\SoftDeleteable\SoftDeleteableListener;
 use Gedmo\Timestampable\TimestampableListener;
 use Jgut\Doctrine\ManagerBuilder\RelationalBuilder;
 
 require __DIR__ . '/vendor/autoload.php';
 
 $rdbmsBuilder = new RelationalBuilder([
+    'annotation_autoloaders' => ['class_exists'],
     'connection' => [
         'driver' => 'pdo_sqlite',
         'memory' => true,
@@ -234,12 +241,15 @@ $rdbmsBuilder = new RelationalBuilder([
             'path' => 'path/to/entities',
         ],
     ],
+    'event_subscribers' => [
+        new SluggableListener,
+        new TimestampableListener,
+        new SoftDeleteableListener,
+    ],
+    'custom_filters' => [
+        'soft-deleteable' => 'Gedmo\SoftDeleteable\Filter\SoftDeleteableFilter',
+    ],
 ]);
-
-// Add listeners to builder's event manager
-$eventManager = $rdbmsBuilder->getEventManager();
-$eventManager->addEventSubscriber(new SluggableListener);
-$eventManager->addEventSubscriber(new TimestampableListener);
 
 // Register mapping driver into DoctrineExtensions
 DoctrineExtensions::registerAbstractMappingIntoDriverChainORM($rdbmsBuilder->getMetadataMappingDriver());

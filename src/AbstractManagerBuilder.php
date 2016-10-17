@@ -121,9 +121,7 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
     }
 
     /**
-     * Set builder's name.
-     *
-     * @param string|null $name
+     * {@inheritdoc}
      *
      * @return $this
      */
@@ -145,12 +143,7 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
     }
 
     /**
-     * Retrieve builder option.
-     *
-     * @param string     $option
-     * @param mixed|null $default
-     *
-     * @return mixed
+     * {@inheritdoc}
      */
     public function getOption($option, $default = null)
     {
@@ -158,11 +151,7 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
     }
 
     /**
-     * Verifies option existence.
-     *
-     * @param string $option
-     *
-     * @return bool
+     * {@inheritdoc}
      */
     public function hasOption($option)
     {
@@ -186,10 +175,7 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
     }
 
     /**
-     * Set builder option.
-     *
-     * @param string $option
-     * @param mixed  $value
+     * {@inheritdoc}
      *
      * @return $this
      */
@@ -250,12 +236,10 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
     }
 
     /**
-     * Create metadata mapping driver.
+     * {@inheritdoc}
      *
      * @throws \RuntimeException
      * @throws \UnexpectedValueException
-     *
-     * @return MappingDriver
      */
     public function getMetadataMappingDriver()
     {
@@ -375,6 +359,18 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
     abstract protected function getYamlMetadataDriver(array $paths, $extension = null);
 
     /**
+     * {@inheritdoc}
+     *
+     * @return $this
+     */
+    public function setMetadataMappingDriver(MappingDriverChain $mappingDriver)
+    {
+        $this->mappingDriver = $mappingDriver;
+
+        return $this;
+    }
+
+    /**
      * Get PHP metadata driver.
      *
      * @param array $paths
@@ -436,11 +432,9 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
     }
 
     /**
-     * Retrieve metadata cache driver.
+     * {@inheritdoc}
      *
      * @throws \InvalidArgumentException
-     *
-     * @return CacheProvider
      */
     public function getMetadataCacheDriver()
     {
@@ -503,19 +497,19 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
     }
 
     /**
-     * Set metadata cache driver.
+     * {@inheritdoc}
      *
-     * @param CacheProvider $metadataCacheDriver
+     * @return $this
      */
     public function setMetadataCacheDriver(CacheProvider $metadataCacheDriver)
     {
         $this->metadataCacheDriver = $metadataCacheDriver;
+
+        return $this;
     }
 
     /**
-     * Retrieve event manager.
-     *
-     * @return EventManager
+     * {@inheritdoc}
      */
     public function getEventManager()
     {
@@ -533,12 +527,30 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
     }
 
     /**
-     * Set event manager.
+     * {@inheritdoc}
      *
-     * @param EventManager $eventManager
+     * @return $this
      */
     public function setEventManager(EventManager $eventManager)
     {
         $this->eventManager = $eventManager;
+
+        return $this;
+    }
+
+    /**
+     * Get event subscribers.
+     *
+     * @return array|null
+     */
+    protected function getEventSubscribers()
+    {
+        $eventSubscribers = $this->getOption('event_subscribers');
+
+        if (!is_null($eventSubscribers) && !is_array($eventSubscribers)) {
+            $eventSubscribers = [$eventSubscribers];
+        }
+
+        return $eventSubscribers;
     }
 }

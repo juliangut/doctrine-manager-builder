@@ -109,22 +109,35 @@ class MongoDBBuilder extends AbstractManagerBuilder
     {
         $config = new Configuration;
 
+        $this->setUpGeneralConfigurations($config);
+        $this->setUpSpecificConfigurations($config);
+
+        $eventManager = $this->getEventManager();
+        if ($this->getEventSubscribers() !== null) {
+            /* @var array $eventSubscribers */
+            $eventSubscribers = $this->getEventSubscribers();
+
+            foreach ($eventSubscribers as $eventSubscriber) {
+                $eventManager->addEventSubscriber($eventSubscriber);
+            }
+        }
+
+        return DocumentManager::create($this->getConnection($config), $config, $eventManager);
+    }
+
+    /**
+     * Set up general manager configurations.
+     *
+     * @param Configuration $config
+     */
+    protected function setUpGeneralConfigurations(Configuration $config)
+    {
         $this->setupAnnotationMetadata();
         $config->setMetadataDriverImpl($this->getMetadataMappingDriver());
 
         $config->setProxyDir($this->getProxiesPath());
         $config->setProxyNamespace($this->getProxiesNamespace());
         $config->setAutoGenerateProxyClasses($this->getProxiesAutoGeneration());
-
-        $config->setHydratorDir($this->getHydratorsPath());
-        $config->setHydratorNamespace($this->getHydratorsNamespace());
-        $config->setAutoGenerateHydratorClasses($this->getHydratorsAutoGeneration());
-
-        $config->setPersistentCollectionDir($this->getPersistentCollectionPath());
-        $config->setPersistentCollectionNamespace($this->getPersistentCollectionNamespace());
-        $config->setAutoGeneratePersistentCollectionClasses($this->getAutoGeneratePersistentCollection());
-
-        $config->setMetadataCacheImpl($this->getMetadataCacheDriver());
 
         if ($this->getRepositoryFactory() !== null) {
             $config->setRepositoryFactory($this->getRepositoryFactory());
@@ -134,6 +147,24 @@ class MongoDBBuilder extends AbstractManagerBuilder
             $config->setDefaultRepositoryClassName($this->getDefaultRepositoryClass());
         }
 
+        $config->setMetadataCacheImpl($this->getMetadataCacheDriver());
+    }
+
+    /**
+     * Set up manager specific configurations.
+     *
+     * @param Configuration $config
+     */
+    protected function setUpSpecificConfigurations(Configuration $config)
+    {
+        $config->setHydratorDir($this->getHydratorsPath());
+        $config->setHydratorNamespace($this->getHydratorsNamespace());
+        $config->setAutoGenerateHydratorClasses($this->getHydratorsAutoGeneration());
+
+        $config->setPersistentCollectionDir($this->getPersistentCollectionPath());
+        $config->setPersistentCollectionNamespace($this->getPersistentCollectionNamespace());
+        $config->setAutoGeneratePersistentCollectionClasses($this->getAutoGeneratePersistentCollection());
+
         if ($this->getDefaultDatabase() !== null) {
             $config->setDefaultDB($this->getDefaultDatabase());
         }
@@ -142,7 +173,11 @@ class MongoDBBuilder extends AbstractManagerBuilder
             $config->setLoggerCallable($this->getLoggerCallable());
         }
 
-        return DocumentManager::create($this->getConnection($config), $config, $this->getEventManager());
+        if ($this->getCustomFilters() !== null) {
+            foreach ($this->getCustomFilters() as $name => $filterClass) {
+                $config->addFilter($name, $filterClass);
+            }
+        }
     }
 
     /**
@@ -327,6 +362,24 @@ class MongoDBBuilder extends AbstractManagerBuilder
         }
 
         return $this->loggerCallable;
+    }
+
+    /**
+     * Get custom registered filters.
+     *
+     * @return array
+     */
+    protected function getCustomFilters()
+    {
+        $filters = (array) $this->getOption('custom_filters');
+
+        return array_filter(
+            $filters,
+            function ($name) {
+                return is_string($name);
+            },
+            ARRAY_FILTER_USE_KEY
+        );
     }
 
     /**

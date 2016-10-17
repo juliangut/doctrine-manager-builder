@@ -148,16 +148,43 @@ class RelationalBuilder extends AbstractManagerBuilder
     {
         $config = new Configuration();
 
+        $this->setUpGeneralConfigurations($config);
+        $this->setUpSpecificConfigurations($config);
+
+        $eventManager = $this->getEventManager();
+        if ($this->getEventSubscribers() !== null) {
+            /* @var array $eventSubscribers */
+            $eventSubscribers = $this->getEventSubscribers();
+
+            foreach ($eventSubscribers as $eventSubscriber) {
+                $eventManager->addEventSubscriber($eventSubscriber);
+            }
+        }
+
+        $entityManager = EntityManager::create($this->getOption('connection'), $config, $eventManager);
+
+        $platform = $entityManager->getConnection()->getDatabasePlatform();
+        foreach ($this->getCustomTypes() as $type => $class) {
+            Type::addType($type, $class);
+            $platform->registerDoctrineTypeMapping($type, $type);
+        }
+
+        return $entityManager;
+    }
+
+    /**
+     * Set up general manager configurations.
+     *
+     * @param Configuration $config
+     */
+    protected function setUpGeneralConfigurations(Configuration $config)
+    {
         $this->setupAnnotationMetadata();
         $config->setMetadataDriverImpl($this->getMetadataMappingDriver());
 
         $config->setProxyDir($this->getProxiesPath());
         $config->setProxyNamespace($this->getProxiesNamespace());
         $config->setAutoGenerateProxyClasses($this->getProxiesAutoGeneration());
-
-        $config->setMetadataCacheImpl($this->getMetadataCacheDriver());
-        $config->setQueryCacheImpl($this->getQueryCacheDriver());
-        $config->setResultCacheImpl($this->getResultCacheDriver());
 
         if ($this->getRepositoryFactory() !== null) {
             $config->setRepositoryFactory($this->getRepositoryFactory());
@@ -167,6 +194,19 @@ class RelationalBuilder extends AbstractManagerBuilder
             $config->setDefaultRepositoryClassName($this->getDefaultRepositoryClass());
         }
 
+        $config->setMetadataCacheImpl($this->getMetadataCacheDriver());
+    }
+
+    /**
+     * Set up manager specific configurations.
+     *
+     * @param Configuration $config
+     */
+    protected function setUpSpecificConfigurations(Configuration $config)
+    {
+        $config->setQueryCacheImpl($this->getQueryCacheDriver());
+        $config->setResultCacheImpl($this->getResultCacheDriver());
+
         $config->setNamingStrategy($this->getNamingStrategy());
         $config->setQuoteStrategy($this->getQuoteStrategy());
 
@@ -175,15 +215,11 @@ class RelationalBuilder extends AbstractManagerBuilder
         $config->setCustomNumericFunctions($this->getCustomNumericFunctions());
         $config->setCustomDatetimeFunctions($this->getCustomDateTimeFunctions());
 
-        $entityManager = EntityManager::create($this->getOption('connection'), $config, $this->getEventManager());
-
-        $platform = $entityManager->getConnection()->getDatabasePlatform();
-        foreach ($this->getCustomTypes() as $type => $class) {
-            Type::addType($type, $class);
-            $platform->registerDoctrineTypeMapping($type, $type);
+        if ($this->getCustomFilters() !== null) {
+            foreach ($this->getCustomFilters() as $name => $filterClass) {
+                $config->addFilter($name, $filterClass);
+            }
         }
-
-        return $entityManager;
     }
 
     /**
@@ -440,6 +476,24 @@ class RelationalBuilder extends AbstractManagerBuilder
 
         return array_filter(
             $types,
+            function ($name) {
+                return is_string($name);
+            },
+            ARRAY_FILTER_USE_KEY
+        );
+    }
+
+    /**
+     * Get custom registered filters.
+     *
+     * @return array
+     */
+    protected function getCustomFilters()
+    {
+        $filters = (array) $this->getOption('custom_filters');
+
+        return array_filter(
+            $filters,
             function ($name) {
                 return is_string($name);
             },
