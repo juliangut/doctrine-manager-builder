@@ -215,10 +215,8 @@ class RelationalBuilder extends AbstractManagerBuilder
         $config->setCustomNumericFunctions($this->getCustomNumericFunctions());
         $config->setCustomDatetimeFunctions($this->getCustomDateTimeFunctions());
 
-        if (count($this->getCustomFilters())) {
-            foreach ($this->getCustomFilters() as $name => $filterClass) {
-                $config->addFilter($name, $filterClass);
-            }
+        foreach ($this->getCustomFilters() as $name => $filterClass) {
+            $config->addFilter($name, $filterClass);
         }
     }
 
