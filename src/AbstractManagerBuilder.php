@@ -185,36 +185,48 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
     public function getMetadataMappingDriver()
     {
         if (!$this->mappingDriver instanceof MappingDriverChain) {
-            $metadataDriver = new MappingDriverChain;
+            $metadataDriverChain = new MappingDriverChain;
 
-            foreach ((array) $this->getOption('metadata_mapping') as $metadataMapping) {
-                if (!is_array($metadataMapping)) {
-                    $metadataMapping = ['driver' => $metadataMapping];
-                }
+            $this->parseMetadataMapping($metadataDriverChain);
 
-                if (!array_key_exists('namespace', $metadataMapping) && $metadataDriver->getDefaultDriver() !== null) {
-                    throw new \RuntimeException(
-                        'Only one default metadata mapping driver allowed, a namespace must be defined'
-                    );
-                }
-
-                $mappingDriver = $this->getMappingDriver($metadataMapping);
-
-                if (array_key_exists('namespace', $metadataMapping)) {
-                    $metadataDriver->addDriver($mappingDriver, $metadataMapping['namespace']);
-                } else {
-                    $metadataDriver->setDefaultDriver($mappingDriver);
-                }
-            }
-
-            if ($metadataDriver->getDefaultDriver() === null && count($metadataDriver->getDrivers()) === 0) {
+            if ($metadataDriverChain->getDefaultDriver() === null && count($metadataDriverChain->getDrivers()) === 0) {
                 throw new \RuntimeException('No metadata mapping defined');
             }
 
-            $this->mappingDriver = $metadataDriver;
+            $this->mappingDriver = $metadataDriverChain;
         }
 
         return $this->mappingDriver;
+    }
+
+    /**
+     * Parse metadata mapping configuration.
+     *
+     * @param MappingDriverChain $metadataDriverChain
+     *
+     * @throws \RuntimeException
+     */
+    protected function parseMetadataMapping(MappingDriverChain $metadataDriverChain)
+    {
+        foreach ((array) $this->getOption('metadata_mapping') as $metadataMapping) {
+            if (!is_array($metadataMapping)) {
+                $metadataMapping = ['driver' => $metadataMapping];
+            }
+
+            if (!array_key_exists('namespace', $metadataMapping) && $metadataDriverChain->getDefaultDriver() !== null) {
+                throw new \RuntimeException(
+                    'Only one default metadata mapping driver allowed, a namespace must be defined'
+                );
+            }
+
+            $mappingDriver = $this->getMappingDriver($metadataMapping);
+
+            if (array_key_exists('namespace', $metadataMapping)) {
+                $metadataDriverChain->addDriver($mappingDriver, $metadataMapping['namespace']);
+            } else {
+                $metadataDriverChain->setDefaultDriver($mappingDriver);
+            }
+        }
     }
 
     /**
@@ -243,30 +255,47 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
         if (count(array_intersect(['type', 'path'], array_keys($metadataMapping))) === 2) {
             $metadataMapping = array_merge(['extension' => null], $metadataMapping);
 
-            $paths = (array) $metadataMapping['path'];
-            $extension = $metadataMapping['extension'];
-
-            switch ($metadataMapping['type']) {
-                case ManagerBuilder::METADATA_MAPPING_ANNOTATION:
-                    return $this->getAnnotationMetadataDriver($paths);
-
-                case ManagerBuilder::METADATA_MAPPING_XML:
-                    return $this->getXmlMetadataDriver($paths, $extension);
-
-                case ManagerBuilder::METADATA_MAPPING_YAML:
-                    return $this->getYamlMetadataDriver($paths, $extension);
-
-                case ManagerBuilder::METADATA_MAPPING_PHP:
-                    return $this->getPhpMetadataDriver($paths);
-            }
-
-            throw new \UnexpectedValueException(
-                sprintf('"%s" is not a valid metadata mapping type', $metadataMapping['type'])
+            return $this->getMappingDriverImplementation(
+                $metadataMapping['type'],
+                (array) $metadataMapping['path'],
+                $metadataMapping['extension']
             );
         }
 
         throw new \UnexpectedValueException(
             'metadata_mapping must be array with "driver" key or "type" and "path" keys'
+        );
+    }
+
+    /**
+     * Get metadata mapping driver implementation.
+     *
+     * @param string $type
+     * @param string $paths
+     * @param string $extension
+     *
+     * @throws \UnexpectedValueException
+     *
+     * @return MappingDriver|PHPDriver
+     */
+    protected function getMappingDriverImplementation($type, $paths, $extension)
+    {
+        switch ($type) {
+            case ManagerBuilder::METADATA_MAPPING_ANNOTATION:
+                return $this->getAnnotationMappingDriver($paths);
+
+            case ManagerBuilder::METADATA_MAPPING_XML:
+                return $this->getXmlMappingDriver($paths, $extension);
+
+            case ManagerBuilder::METADATA_MAPPING_YAML:
+                return $this->getYamlMappingDriver($paths, $extension);
+
+            case ManagerBuilder::METADATA_MAPPING_PHP:
+                return $this->getPhpMappingDriver($paths);
+        }
+
+        throw new \UnexpectedValueException(
+            sprintf('"%s" is not a valid metadata mapping type', $type)
         );
     }
 
@@ -277,7 +306,7 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
      *
      * @return MappingDriver
      */
-    abstract protected function getAnnotationMetadataDriver(array $paths);
+    abstract protected function getAnnotationMappingDriver(array $paths);
 
     /**
      * Get XML metadata driver.
@@ -287,7 +316,7 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
      *
      * @return MappingDriver
      */
-    abstract protected function getXmlMetadataDriver(array $paths, $extension = null);
+    abstract protected function getXmlMappingDriver(array $paths, $extension = null);
 
     /**
      * Get YAML metadata driver.
@@ -297,7 +326,7 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
      *
      * @return MappingDriver
      */
-    abstract protected function getYamlMetadataDriver(array $paths, $extension = null);
+    abstract protected function getYamlMappingDriver(array $paths, $extension = null);
 
     /**
      * {@inheritdoc}
@@ -318,7 +347,7 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
      *
      * @return PHPDriver
      */
-    protected function getPhpMetadataDriver(array $paths)
+    protected function getPhpMappingDriver(array $paths)
     {
         return new PHPDriver($paths);
     }

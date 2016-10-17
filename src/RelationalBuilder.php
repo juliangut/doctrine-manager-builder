@@ -223,7 +223,7 @@ class RelationalBuilder extends AbstractManagerBuilder
     /**
      * {@inheritdoc}
      */
-    protected function getAnnotationMetadataDriver(array $paths)
+    protected function getAnnotationMappingDriver(array $paths)
     {
         return new AnnotationDriver(new AnnotationReader, $paths);
     }
@@ -231,7 +231,7 @@ class RelationalBuilder extends AbstractManagerBuilder
     /**
      * {@inheritdoc}
      */
-    protected function getXmlMetadataDriver(array $paths, $extension = null)
+    protected function getXmlMappingDriver(array $paths, $extension = null)
     {
         $extension = $extension ?: XmlDriver::DEFAULT_FILE_EXTENSION;
 
@@ -241,7 +241,7 @@ class RelationalBuilder extends AbstractManagerBuilder
     /**
      * {@inheritdoc}
      */
-    protected function getYamlMetadataDriver(array $paths, $extension = null)
+    protected function getYamlMappingDriver(array $paths, $extension = null)
     {
         $extension = $extension ?: YamlDriver::DEFAULT_FILE_EXTENSION;
 
