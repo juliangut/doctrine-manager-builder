@@ -55,13 +55,6 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
     protected $mappingDriver;
 
     /**
-     * General cache driver.
-     *
-     * @var CacheProvider
-     */
-    protected $cacheDriver;
-
-    /**
      * Metadata cache driver.
      *
      * @var CacheProvider
@@ -100,7 +93,6 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
     protected function wipe()
     {
         $this->mappingDriver = null;
-        $this->cacheDriver = null;
         $this->metadataCacheDriver = null;
         $this->eventManager = null;
     }
@@ -271,7 +263,7 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
      * Get metadata mapping driver implementation.
      *
      * @param string $type
-     * @param string $paths
+     * @param array  $paths
      * @param string $extension
      *
      * @throws \UnexpectedValueException
@@ -329,18 +321,6 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
     abstract protected function getYamlMappingDriver(array $paths, $extension = null);
 
     /**
-     * {@inheritdoc}
-     *
-     * @return $this
-     */
-    public function setMetadataMappingDriver(MappingDriverChain $mappingDriver)
-    {
-        $this->mappingDriver = $mappingDriver;
-
-        return $this;
-    }
-
-    /**
      * Get PHP metadata driver.
      *
      * @param array $paths
@@ -350,6 +330,18 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
     protected function getPhpMappingDriver(array $paths)
     {
         return new PHPDriver($paths);
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @return $this
+     */
+    public function setMetadataMappingDriver(MappingDriverChain $mappingDriver)
+    {
+        $this->mappingDriver = $mappingDriver;
+
+        return $this;
     }
 
     /**
