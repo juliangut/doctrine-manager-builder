@@ -13,7 +13,6 @@ namespace Jgut\Doctrine\ManagerBuilder\Tests;
 
 use Doctrine\Common\Cache\CacheProvider;
 use Doctrine\Common\EventManager;
-use Doctrine\Common\Proxy\AbstractProxyFactory;
 use Jgut\Doctrine\ManagerBuilder\AbstractManagerBuilder;
 
 /**
@@ -32,29 +31,6 @@ class AbstractManagerBuilderTest extends \PHPUnit_Framework_TestCase
         $objectBuilder->setName('Object_Builder');
 
         self::assertEquals('Object_Builder', $objectBuilder->getName());
-    }
-
-    public function testOptions()
-    {
-        $options = [
-            'proxies_namespace' => 'MyTestProxyNamespace',
-            'proxies_auto_generation' => AbstractProxyFactory::AUTOGENERATE_ALWAYS,
-        ];
-
-        /* @var AbstractManagerBuilder $objectBuilder */
-        $objectBuilder = $this->getMockBuilder(AbstractManagerBuilder::class)
-            ->disableOriginalConstructor()
-            ->setMethodsExcept(['getOptions', 'getOption', 'hasOption', 'setOptions', 'setOption'])
-            ->getMockForAbstractClass();
-
-        $objectBuilder->setOptions($options);
-
-        self::assertEquals($options, $objectBuilder->getOptions());
-        self::assertTrue($objectBuilder->hasOption('proxies_auto_generation'));
-        self::assertEquals('MyTestProxyNamespace', $objectBuilder->getOption('proxies_namespace'));
-
-        $objectBuilder->setOption('proxies_path', [__DIR__]);
-        self::assertEquals([__DIR__], $objectBuilder->getOption('proxies_path'));
     }
 
     public function testMetadataCache()

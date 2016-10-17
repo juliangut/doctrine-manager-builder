@@ -29,6 +29,8 @@ use Doctrine\Common\Proxy\AbstractProxyFactory;
  */
 abstract class AbstractManagerBuilder implements ManagerBuilder
 {
+    use OptionsTrait;
+
     /**
      * Manager builder's common default options.
      *
@@ -37,13 +39,6 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
     private $defaultOptions = [
         'proxies_auto_generation' => AbstractProxyFactory::AUTOGENERATE_NEVER,
     ];
-
-    /**
-     * Builder options.
-     *
-     * @var array
-     */
-    protected $options = [];
 
     /**
      * Builder name.
@@ -128,60 +123,6 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
     public function setName($name = null)
     {
         $this->name = $name;
-
-        return $this;
-    }
-
-    /**
-     * Retrieve builder options.
-     *
-     * @return array
-     */
-    public function getOptions()
-    {
-        return $this->options;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getOption($option, $default = null)
-    {
-        return array_key_exists($option, $this->options) ? $this->options[$option] : $default;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function hasOption($option)
-    {
-        return array_key_exists($option, $this->options);
-    }
-
-    /**
-     * Set builder options.
-     *
-     * @param array $options
-     *
-     * @return $this
-     */
-    public function setOptions(array $options)
-    {
-        foreach ($options as $option => $value) {
-            $this->setOption($option, $value);
-        }
-
-        return $this;
-    }
-
-    /**
-     * {@inheritdoc}
-     *
-     * @return $this
-     */
-    public function setOption($option, $value)
-    {
-        $this->options[$option] = $value;
 
         return $this;
     }

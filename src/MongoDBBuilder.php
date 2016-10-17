@@ -173,7 +173,7 @@ class MongoDBBuilder extends AbstractManagerBuilder
             $config->setLoggerCallable($this->getLoggerCallable());
         }
 
-        if ($this->getCustomFilters() !== null) {
+        if (count($this->getCustomFilters())) {
             foreach ($this->getCustomFilters() as $name => $filterClass) {
                 $config->addFilter($name, $filterClass);
             }
