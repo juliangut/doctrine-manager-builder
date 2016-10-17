@@ -232,6 +232,7 @@ class CouchDBBuilder extends AbstractManagerBuilder
      */
     public function getConsoleHelperSet()
     {
+        /* @var DocumentManager $documentManager */
         $documentManager = $this->getManager();
 
         return new HelperSet([

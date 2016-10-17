@@ -411,8 +411,11 @@ class MongoDBBuilder extends AbstractManagerBuilder
      */
     public function getConsoleHelperSet()
     {
+        /* @var DocumentManager $documentManager */
+        $documentManager = $this->getManager();
+
         return new HelperSet([
-            'dm' => new DocumentManagerHelper($this->getManager()),
+            'dm' => new DocumentManagerHelper($documentManager),
         ]);
     }
 }

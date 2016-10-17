@@ -546,6 +546,7 @@ class RelationalBuilder extends AbstractManagerBuilder
      */
     public function getConsoleHelperSet()
     {
+        /* @var EntityManager $entityManager */
         $entityManager = $this->getManager();
 
         return new HelperSet([
