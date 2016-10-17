@@ -12,17 +12,15 @@
 namespace Jgut\Doctrine\ManagerBuilder;
 
 use Doctrine\Common\Annotations\AnnotationRegistry;
-use Doctrine\Common\Cache\ApcuCache;
-use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\Common\Cache\CacheProvider;
-use Doctrine\Common\Cache\MemcacheCache;
-use Doctrine\Common\Cache\RedisCache;
-use Doctrine\Common\Cache\XcacheCache;
 use Doctrine\Common\EventManager;
 use Doctrine\Common\Persistence\Mapping\Driver\MappingDriver;
 use Doctrine\Common\Persistence\Mapping\Driver\MappingDriverChain;
 use Doctrine\Common\Persistence\Mapping\Driver\PHPDriver;
+use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\Common\Proxy\AbstractProxyFactory;
+use Jgut\Doctrine\ManagerBuilder\Util\CacheBuilder;
+use Jgut\Doctrine\ManagerBuilder\Util\OptionsTrait;
 
 /**
  * Abstract Doctrine Manager builder.
@@ -46,6 +44,13 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
      * @var
      */
     protected $name;
+
+    /**
+     * Object Manager.
+     *
+     * @var ObjectManager
+     */
+    protected $manager;
 
     /**
      * Metadata mapping driver.
@@ -88,14 +93,34 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
     abstract protected function getDefaultOptions();
 
     /**
+     * {@inheritdoc}
+     *
+     * @return ObjectManager
+     */
+    public function getManager($force = false)
+    {
+        if ($force === true) {
+            $this->wipe();
+        }
+
+        if (!$this->manager instanceof ObjectManager) {
+            $this->manager = $this->buildManager();
+        }
+
+        return $this->manager;
+    }
+
+    /**
      * Unset created objects for rebuild.
      */
-    protected function wipe()
-    {
-        $this->mappingDriver = null;
-        $this->metadataCacheDriver = null;
-        $this->eventManager = null;
-    }
+    abstract protected function wipe();
+
+    /**
+     * Build new Doctrine object manager.
+     *
+     * @return ObjectManager
+     */
+    abstract protected function buildManager();
 
     /**
      * {@inheritdoc}
@@ -404,7 +429,7 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
             $metadataCacheDriver = $this->getOption('metadata_cache_driver');
 
             if (!$metadataCacheDriver instanceof CacheProvider) {
-                $metadataCacheDriver = $this->createNewCacheDriver();
+                $metadataCacheDriver = CacheBuilder::build();
             }
 
             if ($metadataCacheDriver->getNamespace() === '') {
@@ -415,47 +440,6 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
         }
 
         return $this->metadataCacheDriver;
-    }
-
-    /**
-     * Retrieve a newly created cache driver.
-     *
-     * @return ApcuCache|ArrayCache|MemcacheCache|RedisCache|XcacheCache
-     */
-    private function createNewCacheDriver()
-    {
-        switch (true) {
-            // @codeCoverageIgnoreStart
-            case extension_loaded('apc'):
-                $cacheDriver = new ApcuCache;
-                break;
-
-            case extension_loaded('xcache'):
-                $cacheDriver = new XcacheCache;
-                break;
-
-            case extension_loaded('memcache'):
-                $memcache = new \Memcache;
-                $memcache->connect('127.0.0.1');
-
-                $cacheDriver = new MemcacheCache;
-                $cacheDriver->setMemcache($memcache);
-                break;
-
-            case extension_loaded('redis'):
-                $redis = new \Redis();
-                $redis->connect('127.0.0.1');
-
-                $cacheDriver = new RedisCache;
-                $cacheDriver->setRedis($redis);
-                break;
-            // @codeCoverageIgnoreEnd
-
-            default:
-                $cacheDriver = new ArrayCache;
-        }
-
-        return $cacheDriver;
     }
 
     /**

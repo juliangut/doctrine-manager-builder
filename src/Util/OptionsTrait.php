@@ -9,7 +9,7 @@
  * @author Julián Gutiérrez <juliangut@gmail.com>
  */
 
-namespace Jgut\Doctrine\ManagerBuilder;
+namespace Jgut\Doctrine\ManagerBuilder\Util;
 
 /**
  * Options trait.

@@ -38,13 +38,6 @@ use Symfony\Component\Console\Helper\HelperSet;
 class RelationalBuilder extends AbstractManagerBuilder
 {
     /**
-     * Entity Manager.
-     *
-     * @var EntityManager
-     */
-    protected $manager;
-
-    /**
      * Query cache driver.
      *
      * @var CacheProvider
@@ -96,36 +89,13 @@ class RelationalBuilder extends AbstractManagerBuilder
 
     /**
      * {@inheritdoc}
-     *
-     * @throws \Doctrine\DBAL\DBALException
-     * @throws \Doctrine\ORM\ORMException
-     * @throws \InvalidArgumentException
-     * @throws \RuntimeException
-     * @throws \UnexpectedValueException
-     *
-     * @return EntityManager
-     */
-    public function getManager($force = false)
-    {
-        if ($force === true) {
-            $this->wipe();
-        }
-
-        if (!$this->manager instanceof EntityManager) {
-            $this->manager = $this->buildManager();
-        }
-
-        return $this->manager;
-    }
-
-    /**
-     * {@inheritdoc}
      */
     protected function wipe()
     {
-        parent::wipe();
-
         $this->manager = null;
+        $this->mappingDriver = null;
+        $this->metadataCacheDriver = null;
+        $this->eventManager = null;
         $this->queryCacheDriver = null;
         $this->resultCacheDriver = null;
         $this->namingStrategy = null;
@@ -134,7 +104,7 @@ class RelationalBuilder extends AbstractManagerBuilder
     }
 
     /**
-     * Build new Doctrine entity manager.
+     * {@inheritdoc}
      *
      * @throws \Doctrine\DBAL\DBALException
      * @throws \Doctrine\ORM\ORMException

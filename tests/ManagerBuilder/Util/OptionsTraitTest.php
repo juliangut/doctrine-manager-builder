@@ -9,10 +9,10 @@
  * @author Julián Gutiérrez <juliangut@gmail.com>
  */
 
-namespace Jgut\Doctrine\ManagerBuilder\Tests;
+namespace Jgut\Doctrine\ManagerBuilder\Tests\Util;
 
 use Doctrine\Common\Proxy\AbstractProxyFactory;
-use Jgut\Doctrine\ManagerBuilder\OptionsTrait;
+use Jgut\Doctrine\ManagerBuilder\Util\OptionsTrait;
 
 /**
  * Options trait tests.

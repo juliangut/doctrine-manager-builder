@@ -29,13 +29,6 @@ use Symfony\Component\Console\Helper\HelperSet;
 class CouchDBBuilder extends AbstractManagerBuilder
 {
     /**
-     * Document Manager.
-     *
-     * @var DocumentManager
-     */
-    protected $manager;
-
-    /**
      * {@inheritdoc}
      */
     protected function getDefaultOptions()
@@ -50,38 +43,17 @@ class CouchDBBuilder extends AbstractManagerBuilder
 
     /**
      * {@inheritdoc}
-     *
-     * @throws \InvalidArgumentException
-     * @throws \RuntimeException
-     * @throws \UnexpectedValueException
-     *
-     * @return DocumentManager
      */
-    public function getManager($force = false)
+    protected function wipe()
     {
-        if ($force === true) {
-            $this->wipe();
-        }
-
-        if (!$this->manager instanceof DocumentManager) {
-            $this->manager = $this->buildManager();
-        }
-
-        return $this->manager;
+        $this->manager = null;
+        $this->mappingDriver = null;
+        $this->metadataCacheDriver = null;
+        $this->eventManager = null;
     }
 
     /**
      * {@inheritdoc}
-     */
-    protected function wipe()
-    {
-        parent::wipe();
-
-        $this->manager = null;
-    }
-
-    /**
-     * Build Doctrine CouchDB Document Manager.
      *
      * @throws \InvalidArgumentException
      * @throws \RuntimeException

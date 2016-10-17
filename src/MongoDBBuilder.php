@@ -31,13 +31,6 @@ use Symfony\Component\Console\Helper\HelperSet;
 class MongoDBBuilder extends AbstractManagerBuilder
 {
     /**
-     * Document Manager.
-     *
-     * @var DocumentManager
-     */
-    protected $manager;
-
-    /**
      * Logger callable.
      *
      * @var callable
@@ -63,40 +56,18 @@ class MongoDBBuilder extends AbstractManagerBuilder
 
     /**
      * {@inheritdoc}
-     *
-     * @throws \Doctrine\ODM\MongoDB\MongoDBException
-     * @throws \InvalidArgumentException
-     * @throws \RuntimeException
-     * @throws \UnexpectedValueException
-     *
-     * @return DocumentManager
-     */
-    public function getManager($force = false)
-    {
-        if ($force === true) {
-            $this->wipe();
-        }
-
-        if (!$this->manager instanceof DocumentManager) {
-            $this->manager = $this->buildManager();
-        }
-
-        return $this->manager;
-    }
-
-    /**
-     * {@inheritdoc}
      */
     protected function wipe()
     {
-        parent::wipe();
-
         $this->manager = null;
+        $this->mappingDriver = null;
+        $this->metadataCacheDriver = null;
+        $this->eventManager = null;
         $this->loggerCallable = null;
     }
 
     /**
-     * Build Doctrine MongoDB Document Manager.
+     * {@inheritdoc}
      *
      * @throws \Doctrine\ODM\MongoDB\MongoDBException
      * @throws \InvalidArgumentException
