@@ -11,19 +11,6 @@
 
 namespace Jgut\Doctrine\ManagerBuilder;
 
-use Doctrine\Common\Annotations\AnnotationRegistry;
-use Doctrine\Common\Cache\ApcuCache;
-use Doctrine\Common\Cache\ArrayCache;
-use Doctrine\Common\Cache\CacheProvider;
-use Doctrine\Common\Cache\MemcacheCache;
-use Doctrine\Common\Cache\RedisCache;
-use Doctrine\Common\Cache\XcacheCache;
-use Doctrine\Common\EventManager;
-use Doctrine\Common\Persistence\Mapping\Driver\MappingDriver;
-use Doctrine\Common\Persistence\Mapping\Driver\MappingDriverChain;
-use Doctrine\Common\Persistence\Mapping\Driver\PHPDriver;
-use Doctrine\Common\Proxy\AbstractProxyFactory;
-
 /**
  * Options trait.
  */
