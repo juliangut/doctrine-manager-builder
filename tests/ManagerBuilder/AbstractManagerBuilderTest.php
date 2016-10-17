@@ -13,6 +13,7 @@ namespace Jgut\Doctrine\ManagerBuilder\Tests;
 
 use Doctrine\Common\Cache\CacheProvider;
 use Doctrine\Common\EventManager;
+use Doctrine\Common\Persistence\Mapping\Driver\MappingDriverChain;
 use Jgut\Doctrine\ManagerBuilder\AbstractManagerBuilder;
 
 /**
@@ -31,6 +32,28 @@ class AbstractManagerBuilderTest extends \PHPUnit_Framework_TestCase
         $objectBuilder->setName('Object_Builder');
 
         self::assertEquals('Object_Builder', $objectBuilder->getName());
+    }
+
+    public function testMetadataMappingDriver()
+    {
+        /* @var AbstractManagerBuilder $objectBuilder */
+        $objectBuilder = $this->getMockBuilder(AbstractManagerBuilder::class)
+            ->disableOriginalConstructor()
+            ->setMethodsExcept([
+                'getOption',
+                'setOption',
+                'getMetadataMappingDriver',
+                'setMetadataMappingDriver',
+            ])
+            ->getMockForAbstractClass();
+
+        /* @var MappingDriverChain $mappingDriver */
+        $mappingDriver = $this->getMockBuilder(MappingDriverChain::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $objectBuilder->setMetadataMappingDriver($mappingDriver);
+
+        self::assertEquals($mappingDriver, $objectBuilder->getMetadataMappingDriver());
     }
 
     public function testMetadataCache()

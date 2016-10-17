@@ -11,6 +11,7 @@
 
 namespace Jgut\Doctrine\ManagerBuilder\Tests;
 
+use Doctrine\Common\EventSubscriber;
 use Doctrine\MongoDB\Connection;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\Repository\DefaultRepositoryFactory;
@@ -90,6 +91,9 @@ class MongoDBBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function testManager()
     {
+        $eventSubscriber = $this->getMockBuilder(EventSubscriber::class)
+            ->disableOriginalConstructor()
+            ->getMock();
         $connection = new Connection('localhost', [], null, $this->builder->getEventManager());
 
         $this->builder->setOption('connection', $connection);
@@ -100,6 +104,8 @@ class MongoDBBuilderTest extends \PHPUnit_Framework_TestCase
         $this->builder->setOption('repository_factory', new DefaultRepositoryFactory);
         $this->builder->setOption('default_database', 'ddbb');
         $this->builder->setOption('logger_callable', 'class_exists');
+        $this->builder->setOption('event_subscribers', ['event' => $eventSubscriber]);
+        $this->builder->setOption('custom_filters', ['filter' => '\Doctrine\ODM\MongoDB\Query\Filter\BsonFilter']);
 
         static::assertInstanceOf(DocumentManager::class, $this->builder->getManager());
     }

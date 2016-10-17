@@ -13,6 +13,7 @@ namespace Jgut\Doctrine\ManagerBuilder\Tests;
 
 use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\Common\Cache\CacheProvider;
+use Doctrine\Common\EventSubscriber;
 use Doctrine\Common\Persistence\Mapping\Driver\StaticPHPDriver;
 use Doctrine\DBAL\Logging\EchoSQLLogger;
 use Doctrine\DBAL\Types\StringType;
@@ -199,6 +200,10 @@ class RelationalBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function testManager()
     {
+        $eventSubscriber = $this->getMockBuilder(EventSubscriber::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
         $this->builder->setOption('annotation_files', __FILE__);
         $this->builder->setOption('annotation_namespaces', ['namespace' => __FILE__]);
         $this->builder->setOption('annotation_autoloaders', ['class_exists']);
@@ -213,6 +218,8 @@ class RelationalBuilderTest extends \PHPUnit_Framework_TestCase
         $this->builder->setOption('custom_numeric_functions', 'numeric');
         $this->builder->setOption('custom_datetime_functions', 'datetime');
         $this->builder->setOption('custom_types', ['fake_type' => StringType::class]);
+        $this->builder->setOption('event_subscribers', ['event' => $eventSubscriber]);
+        $this->builder->setOption('custom_filters', ['filter' => '\Doctrine\ORM\Query\Filter\SQLFilter']);
 
         static::assertInstanceOf(EntityManager::class, $this->builder->getManager());
     }

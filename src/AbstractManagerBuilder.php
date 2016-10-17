@@ -488,10 +488,16 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
     {
         $eventSubscribers = $this->getOption('event_subscribers');
 
-        if (!is_null($eventSubscribers) && !is_array($eventSubscribers)) {
-            $eventSubscribers = [$eventSubscribers];
+        if (is_null($eventSubscribers) || !is_array($eventSubscribers)) {
+            return;
         }
 
-        return $eventSubscribers;
+        return array_filter(
+            $eventSubscribers,
+            function ($name) {
+                return is_string($name);
+            },
+            ARRAY_FILTER_USE_KEY
+        );
     }
 }
