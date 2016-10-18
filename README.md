@@ -241,13 +241,15 @@ $rdbmsBuilder = new RelationalBuilder([
             'path' => 'path/to/entities',
         ],
     ],
+    // Register new doctrine behaviours
     'event_subscribers' => [
         new SluggableListener,
         new TimestampableListener,
         new SoftDeleteableListener,
     ],
+    // Register custom filters
     'custom_filters' => [
-        'soft-deleteable' => 'Gedmo\SoftDeleteable\Filter\SoftDeleteableFilter',
+        'soft-deleteable' => SoftDeleteableFilter::class,
     ],
 ]);
 
