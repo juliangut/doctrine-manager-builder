@@ -27,6 +27,8 @@ use Symfony\Component\Console\Helper\HelperSet;
 
 /**
  * Doctrine MongoDB Document Manager builder.
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class MongoDBBuilder extends AbstractManagerBuilder
 {

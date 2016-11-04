@@ -25,6 +25,8 @@ use Symfony\Component\Console\Helper\HelperSet;
 
 /**
  * Doctrine CouchDB Document Manager builder.
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class CouchDBBuilder extends AbstractManagerBuilder
 {

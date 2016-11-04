@@ -34,6 +34,8 @@ use Symfony\Component\Console\Helper\HelperSet;
 
 /**
  * Doctrine RDBMS Entity Manager builder.
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class RelationalBuilder extends AbstractManagerBuilder
 {

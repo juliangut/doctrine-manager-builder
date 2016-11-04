@@ -24,6 +24,9 @@ use Jgut\Doctrine\ManagerBuilder\Util\OptionsTrait;
 
 /**
  * Abstract Doctrine Manager builder.
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  */
 abstract class AbstractManagerBuilder implements ManagerBuilder
 {
