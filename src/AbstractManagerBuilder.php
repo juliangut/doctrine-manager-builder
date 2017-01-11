@@ -14,6 +14,7 @@ namespace Jgut\Doctrine\ManagerBuilder;
 use Doctrine\Common\Annotations\AnnotationRegistry;
 use Doctrine\Common\Cache\CacheProvider;
 use Doctrine\Common\EventManager;
+use Doctrine\Common\EventSubscriber;
 use Doctrine\Common\Persistence\Mapping\Driver\MappingDriver;
 use Doctrine\Common\Persistence\Mapping\Driver\MappingDriverChain;
 use Doctrine\Common\Persistence\Mapping\Driver\PHPDriver;
@@ -502,10 +503,9 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
 
         return array_filter(
             $eventSubscribers,
-            function ($name) {
-                return is_string($name);
-            },
-            ARRAY_FILTER_USE_KEY
+            function ($subscriber) {
+                return $subscriber instanceof EventSubscriber;
+            }
         );
     }
 }
