@@ -137,7 +137,12 @@ class RelationalBuilder extends AbstractManagerBuilder
 
         $platform = $entityManager->getConnection()->getDatabasePlatform();
         foreach ($this->getCustomTypes() as $type => $class) {
-            Type::addType($type, $class);
+            if (Type::hasType($type)) {
+                Type::overrideType($type, $class);
+            } else {
+                Type::addType($type, $class);
+            }
+
             $platform->registerDoctrineTypeMapping($type, $type);
         }
 

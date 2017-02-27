@@ -217,7 +217,7 @@ class RelationalBuilderTest extends \PHPUnit_Framework_TestCase
         $this->builder->setOption('custom_string_functions', 'string');
         $this->builder->setOption('custom_numeric_functions', 'numeric');
         $this->builder->setOption('custom_datetime_functions', 'datetime');
-        $this->builder->setOption('custom_types', ['fake_type' => StringType::class]);
+        $this->builder->setOption('custom_types', ['string' => StringType::class, 'fake_type' => StringType::class]);
         $this->builder->setOption('event_subscribers', ['event' => $eventSubscriber]);
         $this->builder->setOption('custom_filters', ['filter' => '\Doctrine\ORM\Query\Filter\SQLFilter']);
 
