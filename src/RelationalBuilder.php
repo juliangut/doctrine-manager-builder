@@ -36,6 +36,7 @@ use Symfony\Component\Console\Helper\HelperSet;
  * Doctrine RDBMS Entity Manager builder.
  *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  */
 class RelationalBuilder extends AbstractManagerBuilder
 {
@@ -269,19 +270,10 @@ class RelationalBuilder extends AbstractManagerBuilder
     public function getQueryCacheDriver()
     {
         if (!$this->queryCacheDriver instanceof CacheProvider) {
-            $queryCacheDriver = $this->getOption('query_cache_driver');
-            $cacheNamespace = (string) $this->getOption('query_cache_namespace');
-
-            if (!$queryCacheDriver instanceof CacheProvider) {
-                $queryCacheDriver = clone $this->getMetadataCacheDriver();
-                $queryCacheDriver->setNamespace($cacheNamespace);
-            }
-
-            if ($queryCacheDriver->getNamespace() === '') {
-                $queryCacheDriver->setNamespace($cacheNamespace);
-            }
-
-            $this->queryCacheDriver = $queryCacheDriver;
+            $this->queryCacheDriver = $this->getCacheDriver(
+                (string) $this->getOption('query_cache_namespace'),
+                $this->getOption('query_cache_driver')
+            );
         }
 
         return $this->queryCacheDriver;
@@ -307,19 +299,10 @@ class RelationalBuilder extends AbstractManagerBuilder
     public function getResultCacheDriver()
     {
         if (!$this->resultCacheDriver instanceof CacheProvider) {
-            $resultCacheDriver = $this->getOption('result_cache_driver');
-            $cacheNamespace = (string) $this->getOption('result_cache_namespace');
-
-            if (!$resultCacheDriver instanceof CacheProvider) {
-                $resultCacheDriver = clone $this->getMetadataCacheDriver();
-                $resultCacheDriver->setNamespace($cacheNamespace);
-            }
-
-            if ($resultCacheDriver->getNamespace() === '') {
-                $resultCacheDriver->setNamespace($cacheNamespace);
-            }
-
-            $this->resultCacheDriver = $resultCacheDriver;
+            $this->resultCacheDriver = $this->getCacheDriver(
+                (string) $this->getOption('result_cache_namespace'),
+                $this->getOption('result_cache_driver')
+            );
         }
 
         return $this->resultCacheDriver;
@@ -345,19 +328,10 @@ class RelationalBuilder extends AbstractManagerBuilder
     public function getHydratorCacheDriver()
     {
         if (!$this->hydratorCacheDriver instanceof CacheProvider) {
-            $hydratorCacheDriver = $this->getOption('hydrator_cache_driver');
-            $cacheNamespace = (string) $this->getOption('hydrator_cache_namespace');
-
-            if (!$hydratorCacheDriver instanceof CacheProvider) {
-                $hydratorCacheDriver = clone $this->getMetadataCacheDriver();
-                $hydratorCacheDriver->setNamespace($cacheNamespace);
-            }
-
-            if ($hydratorCacheDriver->getNamespace() === '') {
-                $hydratorCacheDriver->setNamespace($cacheNamespace);
-            }
-
-            $this->hydratorCacheDriver = $hydratorCacheDriver;
+            $this->hydratorCacheDriver = $this->getCacheDriver(
+                (string) $this->getOption('hydrator_cache_namespace'),
+                $this->getOption('hydrator_cache_driver')
+            );
         }
 
         return $this->hydratorCacheDriver;
@@ -371,6 +345,28 @@ class RelationalBuilder extends AbstractManagerBuilder
     public function setHydratorCacheDriver(CacheProvider $hydratorCacheDriver)
     {
         $this->hydratorCacheDriver = $hydratorCacheDriver;
+    }
+
+    /**
+     * Get cache driver.
+     *
+     * @param string $cacheNamespace
+     * @param CacheProvider $cacheDriver
+     *
+     * @return CacheProvider
+     */
+    protected function getCacheDriver($cacheNamespace, CacheProvider $cacheDriver = null)
+    {
+        if (!$cacheDriver instanceof CacheProvider) {
+            $cacheDriver = clone $this->getMetadataCacheDriver();
+            $cacheDriver->setNamespace($cacheNamespace);
+        }
+
+        if ($cacheDriver->getNamespace() === '') {
+            $cacheDriver->setNamespace($cacheNamespace);
+        }
+
+        return $cacheDriver;
     }
 
     /**
