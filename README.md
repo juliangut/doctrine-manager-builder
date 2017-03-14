@@ -125,9 +125,11 @@ $documentManager = $couchDBBuilder->getManager();
 
 * `connection` **REQUIRED** array of PDO configurations or a \Doctrine\DBAL\Connection. See [supported drivers](http://php.net/manual/en/pdo.drivers.php)
 * `query_cache_driver` \Doctrine\Common\Cache\CacheProvider query cache driver, defaults to `metadata_cache_driver`
-* `query_cache_namespace` string for query cache namespace
+* `query_cache_namespace` string for query cache namespace, defaults to 'DoctrineRDBMSORMQueryCache'
 * `result_cache_driver` \Doctrine\Common\Cache\CacheProvider result cache driver, defaults to `metadata_cache_driver`
-* `result_cache_namespace` string for result cache namespace
+* `result_cache_namespace` string for result cache namespace, defaults to 'DoctrineRDBMSORMResultCache'
+* `hydrator_cache_driver` \Doctrine\Common\Cache\CacheProvider hydrator cache driver, defaults to `metadata_cache_driver`
+* `hydrator_cache_namespace` string for hydrator cache namespace, defaults to 'DoctrineRDBMSORMHydratorCache'
 * `repository_factory` \Doctrine\ODM\MongoDB\DocumentRepository
 * `default_repository_class` \Doctrine\ORM\Repository\RepositoryFactory
 * `naming_strategy` a `\Doctrine\ORM\Mapping\NamingStrategy`, defaults to `UnderscoreNamingStrategy`

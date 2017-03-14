@@ -27,7 +27,7 @@
   "minimum-stability": "dev",
   "prefer-stable": true,
   "require": {
-    "php": ">=5.6",
+    "php": "^5.6|^7.0",
     "doctrine/common": "^2.5",
     "symfony/console": "^2.0|^3.0"
   },
@@ -37,7 +37,7 @@
     "doctrine/couchdb-odm": "dev-master",
     "friendsofphp/php-cs-fixer": "^1.0",
     "phpmd/phpmd": "^2.0",
-    "phpunit/phpunit": "^4.5|^5.0",
+    "phpunit/phpunit": "^4.5|^5.0|^6.0",
     "phpunit/phpunit-mock-objects": "^3.2",
     "sebastian/phpcpd": "^2.0",
     "squizlabs/php_codesniffer": "^2.0"
@@ -64,7 +64,7 @@
     "preferred-install": "dist"
   },
   "scripts": {
-    "phplint": "php -l src & php -l tests",
+    "php-lint": "php -l src && php -l tests",
     "phpcs": "phpcs --standard=PSR2 src tests",
     "phpcs-lint": "php-cs-fixer fix --dry-run --verbose",
     "phpcpd": "phpcpd src",
@@ -72,9 +72,21 @@
     "phpunit": "phpunit",
     "phpunit-coverage": "phpunit --coverage-html build/coverage",
     "phpunit-clover": "phpunit --coverage-clover build/logs/clover.xml",
-    "qa": "composer phplint & composer phpcs & composer phpcs-lint & composer phpcpd & composer phpmd",
+    "qa": [
+      "@php-lint",
+      "@phpcs",
+      "@phpcs-lint",
+      "@phpcpd",
+      "@phpmd"
+    ],
+    "reports": [
+      "@phpunit-coverage"
+    ],
     "fix": "php-cs-fixer fix --verbose",
     "security": "composer outdated",
-    "test": "composer qa & composer phpunit"
+    "test": [
+      "@php-lint",
+      "@phpunit"
+    ]
   }
 }

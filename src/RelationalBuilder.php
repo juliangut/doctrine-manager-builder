@@ -54,6 +54,13 @@ class RelationalBuilder extends AbstractManagerBuilder
     protected $resultCacheDriver;
 
     /**
+     * Hydrator cache driver.
+     *
+     * @var CacheProvider
+     */
+    protected $hydratorCacheDriver;
+
+    /**
      * Naming strategy.
      *
      * @var NamingStrategy
@@ -85,6 +92,7 @@ class RelationalBuilder extends AbstractManagerBuilder
             'metadata_cache_namespace' => 'DoctrineRDBMSORMMetadataCache',
             'query_cache_namespace' => 'DoctrineRDBMSORMQueryCache',
             'result_cache_namespace' => 'DoctrineRDBMSORMResultCache',
+            'hydrator_cache_namespace' => 'DoctrineRDBMSORMHydratorCache',
             'default_repository_class' => EntityRepository::class,
         ];
     }
@@ -183,6 +191,7 @@ class RelationalBuilder extends AbstractManagerBuilder
     {
         $config->setQueryCacheImpl($this->getQueryCacheDriver());
         $config->setResultCacheImpl($this->getResultCacheDriver());
+        $config->setHydrationCacheImpl($this->getHydratorCacheDriver());
 
         $config->setNamingStrategy($this->getNamingStrategy());
         $config->setQuoteStrategy($this->getQuoteStrategy());
@@ -324,6 +333,44 @@ class RelationalBuilder extends AbstractManagerBuilder
     public function setResultCacheDriver(CacheProvider $resultCacheDriver)
     {
         $this->resultCacheDriver = $resultCacheDriver;
+    }
+
+    /**
+     * Retrieve hydrator cache driver.
+     *
+     * @throws \InvalidArgumentException
+     *
+     * @return CacheProvider
+     */
+    public function getHydratorCacheDriver()
+    {
+        if (!$this->hydratorCacheDriver instanceof CacheProvider) {
+            $hydratorCacheDriver = $this->getOption('hydrator_cache_driver');
+            $cacheNamespace = (string) $this->getOption('hydrator_cache_namespace');
+
+            if (!$hydratorCacheDriver instanceof CacheProvider) {
+                $hydratorCacheDriver = clone $this->getMetadataCacheDriver();
+                $hydratorCacheDriver->setNamespace($cacheNamespace);
+            }
+
+            if ($hydratorCacheDriver->getNamespace() === '') {
+                $hydratorCacheDriver->setNamespace($cacheNamespace);
+            }
+
+            $this->hydratorCacheDriver = $hydratorCacheDriver;
+        }
+
+        return $this->hydratorCacheDriver;
+    }
+
+    /**
+     * Set hydrator cache driver.
+     *
+     * @param CacheProvider $hydratorCacheDriver
+     */
+    public function setHydratorCacheDriver(CacheProvider $hydratorCacheDriver)
+    {
+        $this->hydratorCacheDriver = $hydratorCacheDriver;
     }
 
     /**
