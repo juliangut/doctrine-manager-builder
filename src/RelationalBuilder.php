@@ -350,8 +350,8 @@ class RelationalBuilder extends AbstractManagerBuilder
     /**
      * Get cache driver.
      *
-     * @param string $cacheNamespace
-     * @param CacheProvider $cacheDriver
+     * @param string             $cacheNamespace
+     * @param CacheProvider|null $cacheDriver
      *
      * @return CacheProvider
      */
