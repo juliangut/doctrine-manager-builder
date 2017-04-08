@@ -134,6 +134,7 @@ $documentManager = $couchDBBuilder->getManager();
 * `default_repository_class` \Doctrine\ORM\Repository\RepositoryFactory
 * `naming_strategy` a `\Doctrine\ORM\Mapping\NamingStrategy`, defaults to `UnderscoreNamingStrategy`
 * `quote_strategy` a `\Doctrine\ORM\Mapping\QuoteStrategy`, defaults to `DefaultQuoteStrategy`
+* `second_level_cache_configuration` a `\Doctrine\ORM\Cache\CacheConfiguration`
 * `sql_logger` a `\Doctrine\DBAL\Logging\SQLLogger`
 * `custom_types` array of `'type_name' => '\Doctrine\DBAL\Types\Type'`
 * `custom_filters` array of custom `'filter_name' => '\Doctrine\ORM\Query\Filter\SQLFilter'`

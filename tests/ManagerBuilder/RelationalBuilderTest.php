@@ -17,6 +17,8 @@ use Doctrine\Common\EventSubscriber;
 use Doctrine\Common\Persistence\Mapping\Driver\StaticPHPDriver;
 use Doctrine\DBAL\Logging\EchoSQLLogger;
 use Doctrine\DBAL\Types\StringType;
+use Doctrine\ORM\Cache\CacheConfiguration;
+use Doctrine\ORM\Cache\CacheFactory;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Repository\DefaultRepositoryFactory;
 use Jgut\Doctrine\ManagerBuilder\ManagerBuilder;
@@ -88,6 +90,27 @@ class RelationalBuilderTest extends \PHPUnit_Framework_TestCase
         $this->builder->setResultCacheDriver($cacheDriver);
 
         self::assertEquals($cacheDriver, $this->builder->getResultCacheDriver());
+    }
+
+    public function testHydratorCache()
+    {
+        $cacheDriver = $this->getMockBuilder(CacheProvider::class)
+            ->disableOriginalConstructor()
+            ->setMethodsExcept(['getNamespace', 'setNamespace'])
+            ->getMock();
+
+        $this->builder->setOption('hydrator_cache_driver', $cacheDriver);
+        $this->builder->setOption('hydrator_cache_namespace', '');
+
+        self::assertInstanceOf(CacheProvider::class, $this->builder->getHydratorCacheDriver());
+
+        /* @var CacheProvider $cacheDriver */
+        $cacheDriver = $this->getMockBuilder(CacheProvider::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $this->builder->setHydratorCacheDriver($cacheDriver);
+
+        self::assertEquals($cacheDriver, $this->builder->getHydratorCacheDriver());
     }
 
     /**
@@ -204,6 +227,20 @@ class RelationalBuilderTest extends \PHPUnit_Framework_TestCase
             ->disableOriginalConstructor()
             ->getMock();
 
+        /* @var CacheFactory $cacheFactory */
+        $cacheFactory = $this->getMockBuilder(CacheFactory::class)
+        ->disableOriginalConstructor()
+        ->getMock();
+
+        $cacheConfiguration = $this->getMockBuilder(CacheConfiguration::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $cacheConfiguration->expects(self::once())
+            ->method('getCacheFactory')
+            ->will(self::returnValue($cacheFactory));
+        /* CacheConfiguration $cache */
+
         $this->builder->setOption('annotation_files', __FILE__);
         $this->builder->setOption('annotation_namespaces', ['namespace' => __FILE__]);
         $this->builder->setOption('annotation_autoloaders', ['class_exists']);
@@ -213,6 +250,7 @@ class RelationalBuilderTest extends \PHPUnit_Framework_TestCase
             [['type' => ManagerBuilder::METADATA_MAPPING_ANNOTATION, 'path' => __DIR__]]
         );
         $this->builder->setOption('repository_factory', new DefaultRepositoryFactory);
+        $this->builder->setOption('second_level_cache_configuration', $cacheConfiguration);
         $this->builder->setOption('sql_logger', new EchoSQLLogger);
         $this->builder->setOption('custom_string_functions', 'string');
         $this->builder->setOption('custom_numeric_functions', 'numeric');

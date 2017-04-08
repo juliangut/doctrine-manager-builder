@@ -32,12 +32,12 @@
     "symfony/console": "^2.0|^3.0"
   },
   "require-dev": {
-    "doctrine/orm": "^2.4",
+    "doctrine/orm": "^2.5",
     "doctrine/mongodb-odm": "^1.1",
     "doctrine/couchdb-odm": "dev-master",
     "friendsofphp/php-cs-fixer": "^1.0",
     "phpmd/phpmd": "^2.0",
-    "phpunit/phpunit": "^4.5|^5.0|^6.0",
+    "phpunit/phpunit": "^5.0|^6.0",
     "phpunit/phpunit-mock-objects": "^3.2",
     "sebastian/phpcpd": "^2.0",
     "squizlabs/php_codesniffer": "^2.0"

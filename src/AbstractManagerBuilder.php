@@ -385,9 +385,9 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
      */
     protected function getDefaultRepositoryClass()
     {
-        return array_key_exists('default_repository_class', $this->options)
-            ? (string) $this->options['default_repository_class']
-            : null;
+        $repositoryClass = $this->getOption('default_repository_class');
+
+        return is_string($repositoryClass) ? $repositoryClass : null;
     }
 
     /**

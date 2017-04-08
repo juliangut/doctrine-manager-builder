@@ -16,6 +16,7 @@ use Doctrine\Common\Cache\CacheProvider;
 use Doctrine\DBAL\Logging\SQLLogger;
 use Doctrine\DBAL\Tools\Console\Helper\ConnectionHelper;
 use Doctrine\DBAL\Types\Type;
+use Doctrine\ORM\Cache\CacheConfiguration;
 use Doctrine\ORM\Configuration;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityRepository;
@@ -76,6 +77,13 @@ class RelationalBuilder extends AbstractManagerBuilder
     protected $quoteStrategy;
 
     /**
+     * Second level cache configuration.
+     *
+     * @var CacheConfiguration
+     */
+    protected $secondCacheConfig;
+
+    /**
      * SQL logger.
      *
      * @var SQLLogger
@@ -95,6 +103,7 @@ class RelationalBuilder extends AbstractManagerBuilder
             'result_cache_namespace' => 'DoctrineRDBMSORMResultCache',
             'hydrator_cache_namespace' => 'DoctrineRDBMSORMHydratorCache',
             'default_repository_class' => EntityRepository::class,
+            'second_level_cache_enable' => false,
         ];
     }
 
@@ -196,6 +205,11 @@ class RelationalBuilder extends AbstractManagerBuilder
 
         $config->setNamingStrategy($this->getNamingStrategy());
         $config->setQuoteStrategy($this->getQuoteStrategy());
+
+        if ($this->getSecondLevelCacheConfiguration() !== null) {
+            $config->setSecondLevelCacheEnabled(true);
+            $config->setSecondLevelCacheConfiguration($this->getSecondLevelCacheConfiguration());
+        }
 
         $config->setSQLLogger($this->getSQLLogger());
         $config->setCustomStringFunctions($this->getCustomStringFunctions());
@@ -409,6 +423,24 @@ class RelationalBuilder extends AbstractManagerBuilder
         }
 
         return $this->quoteStrategy;
+    }
+
+    /**
+     * Retrieve second level cache configuration.
+     *
+     * @return CacheConfiguration|null
+     */
+    protected function getSecondLevelCacheConfiguration()
+    {
+        if (!$this->secondCacheConfig instanceof CacheConfiguration) {
+            $secondCacheConfig = $this->getOption('second_level_cache_configuration');
+
+            if ($secondCacheConfig instanceof CacheConfiguration) {
+                $this->secondCacheConfig = $secondCacheConfig;
+            }
+        }
+
+        return $this->secondCacheConfig;
     }
 
     /**
