@@ -153,6 +153,8 @@ class RelationalBuilder extends AbstractManagerBuilder
 
         $entityManager = EntityManager::create($this->getOption('connection'), $config, $eventManager);
 
+        $customMappingTypes = $this->getCustomMappingTypes();
+
         $platform = $entityManager->getConnection()->getDatabasePlatform();
         foreach ($this->getCustomTypes() as $type => $class) {
             if (Type::hasType($type)) {
@@ -161,7 +163,10 @@ class RelationalBuilder extends AbstractManagerBuilder
                 Type::addType($type, $class);
             }
 
-            $platform->registerDoctrineTypeMapping($type, $type);
+            $platform->registerDoctrineTypeMapping(
+                $type,
+                array_key_exists($type, $customMappingTypes) ? $customMappingTypes[$type] : $type
+            );
         }
 
         return $entityManager;
@@ -526,6 +531,24 @@ class RelationalBuilder extends AbstractManagerBuilder
 
         return array_filter(
             $types,
+            function ($name) {
+                return is_string($name);
+            },
+            ARRAY_FILTER_USE_KEY
+        );
+    }
+
+    /**
+     * Retrieve custom DBAL mapping types.
+     *
+     * @return array
+     */
+    protected function getCustomMappingTypes()
+    {
+        $mappingTypes = (array) $this->getOption('custom_mapping_types');
+
+        return array_filter(
+            $mappingTypes,
             function ($name) {
                 return is_string($name);
             },

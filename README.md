@@ -130,13 +130,14 @@ $documentManager = $couchDBBuilder->getManager();
 * `result_cache_namespace` string for result cache namespace, defaults to 'DoctrineRDBMSORMResultCache'
 * `hydrator_cache_driver` \Doctrine\Common\Cache\CacheProvider hydrator cache driver, defaults to `metadata_cache_driver`
 * `hydrator_cache_namespace` string for hydrator cache namespace, defaults to 'DoctrineRDBMSORMHydratorCache'
-* `repository_factory` \Doctrine\ODM\MongoDB\DocumentRepository
-* `default_repository_class` \Doctrine\ORM\Repository\RepositoryFactory
+* `repository_factory` \Doctrine\ORM\Repository\RepositoryFactory
+* `default_repository_class` \Doctrine\ORM\EntityRepository
 * `naming_strategy` a `\Doctrine\ORM\Mapping\NamingStrategy`, defaults to `UnderscoreNamingStrategy`
 * `quote_strategy` a `\Doctrine\ORM\Mapping\QuoteStrategy`, defaults to `DefaultQuoteStrategy`
 * `second_level_cache_configuration` a `\Doctrine\ORM\Cache\CacheConfiguration`
 * `sql_logger` a `\Doctrine\DBAL\Logging\SQLLogger`
 * `custom_types` array of `'type_name' => '\Doctrine\DBAL\Types\Type'`
+* `custom_mapping_types` array of `'type_name' => 'Doctrine type: a constant on \Doctrine\DBAL\Types\Type'` is used in conjunction with custom_types
 * `custom_filters` array of custom `'filter_name' => '\Doctrine\ORM\Query\Filter\SQLFilter'`
 * `string_functions` array of custom `'function_name' => '\Doctrine\ORM\Query\AST\Functions\FunctionNode'` for string DQL functions
 * `numeric_functions` array of custom `'function_name' => '\Doctrine\ORM\Query\AST\Functions\FunctionNode'` for numeric DQL functions

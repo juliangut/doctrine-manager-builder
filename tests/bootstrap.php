@@ -9,6 +9,4 @@
  * @author Julián Gutiérrez <juliangut@gmail.com>
  */
 
-session_start();
-
 require __DIR__ . '/../vendor/autoload.php';

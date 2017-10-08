@@ -16,7 +16,9 @@ use Doctrine\Common\Cache\CacheProvider;
 use Doctrine\Common\EventSubscriber;
 use Doctrine\Common\Persistence\Mapping\Driver\StaticPHPDriver;
 use Doctrine\DBAL\Logging\EchoSQLLogger;
+use Doctrine\DBAL\Types\BooleanType;
 use Doctrine\DBAL\Types\StringType;
+use Doctrine\DBAL\Types\Type;
 use Doctrine\ORM\Cache\CacheConfiguration;
 use Doctrine\ORM\Cache\CacheFactory;
 use Doctrine\ORM\EntityManager;
@@ -254,7 +256,8 @@ class RelationalBuilderTest extends \PHPUnit_Framework_TestCase
         $this->builder->setOption('custom_string_functions', 'string');
         $this->builder->setOption('custom_numeric_functions', 'numeric');
         $this->builder->setOption('custom_datetime_functions', 'datetime');
-        $this->builder->setOption('custom_types', ['string' => StringType::class, 'fake_type' => StringType::class]);
+        $this->builder->setOption('custom_types', ['string' => StringType::class, 'fake_type' => BooleanType::class]);
+        $this->builder->setOption('custom_mapping_types', ['string' => Type::STRING, 'fake_type' => Type::BOOLEAN]);
         $this->builder->setOption('event_subscribers', ['event' => $eventSubscriber]);
         $this->builder->setOption('custom_filters', ['filter' => '\Doctrine\ORM\Query\Filter\SQLFilter']);
 

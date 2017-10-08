@@ -62,7 +62,8 @@
     "bin/doctrine-manager"
   ],
   "config": {
-    "preferred-install": "dist"
+    "preferred-install": "dist",
+    "sort-packages": true
   },
   "scripts": {
     "cghooks": "cghooks",
