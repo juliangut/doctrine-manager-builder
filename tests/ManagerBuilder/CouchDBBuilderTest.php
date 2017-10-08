@@ -16,7 +16,6 @@ use Jgut\Doctrine\ManagerBuilder\CouchDB\Repository\DefaultRepositoryFactory;
 use Jgut\Doctrine\ManagerBuilder\CouchDBBuilder;
 use Jgut\Doctrine\ManagerBuilder\ManagerBuilder;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Helper\HelperSet;
 
 /**
  * CouchDB entity builder tests.
@@ -109,26 +108,11 @@ class CouchDBBuilderTest extends \PHPUnit_Framework_TestCase
 
         $commands = $this->builder->getConsoleCommands();
 
-        return array_walk(
+        array_walk(
             $commands,
             function (Command $command) {
-                static::assertEquals(1, preg_match('/^test:(odm:)?/', $command->getName()));
+                static::assertEquals(1, preg_match('/^couchdb(_odm)?:test:/', $command->getName()));
             }
         );
-    }
-
-    public function testConsoleHelperSet()
-    {
-        $this->builder->setOption('connection', ['dbname' => 'ddbb']);
-        $this->builder->setOption(
-            'metadata_mapping',
-            [['type' => ManagerBuilder::METADATA_MAPPING_ANNOTATION, 'path' => __DIR__]]
-        );
-
-        $helperSet = $this->builder->getConsoleHelperSet();
-
-        static::assertInstanceOf(HelperSet::class, $helperSet);
-        static::assertTrue($helperSet->has('couchdb'));
-        static::assertTrue($helperSet->has('dm'));
     }
 }

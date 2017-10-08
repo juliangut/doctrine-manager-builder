@@ -27,7 +27,13 @@ class ConsoleBuilderTest extends \PHPUnit_Framework_TestCase
 {
     public function testApplication()
     {
+        $helperSet = $this->getMockBuilder(HelperSet::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        /* @var HelperSet $helperSet */
+
         $command = new Command('command');
+        $command->setHelperSet($helperSet);
 
         $builder = $this->getMockBuilder(RelationalBuilder::class)
             ->disableOriginalConstructor()
@@ -40,10 +46,6 @@ class ConsoleBuilderTest extends \PHPUnit_Framework_TestCase
             ->expects(self::once())
             ->method('getConsoleCommands')
             ->will(self::returnValue([$command]));
-        $builder
-            ->expects(self::once())
-            ->method('getConsoleHelperSet')
-            ->will(self::returnValue(new HelperSet));
         /* @var AbstractManagerBuilder $builder */
 
         $consoleBuilder = new ConsoleBuilder();

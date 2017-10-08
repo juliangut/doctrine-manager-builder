@@ -18,7 +18,6 @@ use Doctrine\ODM\MongoDB\Repository\DefaultRepositoryFactory;
 use Jgut\Doctrine\ManagerBuilder\ManagerBuilder;
 use Jgut\Doctrine\ManagerBuilder\MongoDBBuilder;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Helper\HelperSet;
 
 /**
  * MongoDB entity builder tests.
@@ -123,23 +122,8 @@ class MongoDBBuilderTest extends \PHPUnit_Framework_TestCase
         return array_walk(
             $commands,
             function (Command $command) {
-                static::assertEquals(1, preg_match('/^test:odm:/', $command->getName()));
+                static::assertEquals(1, preg_match('/^odm:test:/', $command->getName()));
             }
         );
-    }
-
-    public function testConsoleHelperSet()
-    {
-        $this->builder->setOption('connection', ['server' => 'localhost']);
-        $this->builder->setOption(
-            'metadata_mapping',
-            [['type' => ManagerBuilder::METADATA_MAPPING_ANNOTATION, 'path' => __DIR__]]
-        );
-
-        $helperSet = $this->builder->getConsoleHelperSet();
-
-        static::assertInstanceOf(HelperSet::class, $helperSet);
-        static::assertTrue($helperSet->has('documentManager'));
-        static::assertTrue($helperSet->has('dm'));
     }
 }

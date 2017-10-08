@@ -24,7 +24,6 @@ use Doctrine\ORM\Repository\DefaultRepositoryFactory;
 use Jgut\Doctrine\ManagerBuilder\ManagerBuilder;
 use Jgut\Doctrine\ManagerBuilder\RelationalBuilder;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Helper\HelperSet;
 
 /**
  * Relational entity builder tests.
@@ -275,25 +274,8 @@ class RelationalBuilderTest extends \PHPUnit_Framework_TestCase
         return array_walk(
             $commands,
             function (Command $command) {
-                static::assertEquals(1, preg_match('/^test:(dbal|orm):/', $command->getName()));
+                static::assertEquals(1, preg_match('/^(dbal|orm):test:/', $command->getName()));
             }
         );
-    }
-
-    public function testConsoleHelperSet()
-    {
-        $this->builder->setOption('connection', ['driver' => 'pdo_sqlite', 'memory' => true]);
-        $this->builder->setOption(
-            'metadata_mapping',
-            [['type' => ManagerBuilder::METADATA_MAPPING_ANNOTATION, 'path' => __DIR__]]
-        );
-
-        $helperSet = $this->builder->getConsoleHelperSet();
-
-        static::assertInstanceOf(HelperSet::class, $helperSet);
-        static::assertTrue($helperSet->has('connection'));
-        static::assertTrue($helperSet->has('db'));
-        static::assertTrue($helperSet->has('entityManager'));
-        static::assertTrue($helperSet->has('em'));
     }
 }

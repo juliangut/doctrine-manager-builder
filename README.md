@@ -282,8 +282,8 @@ require __DIR__ . '/vendor/autoload.php';
 $settings = require 'managers-configurations.php';
 
 $consoleBuilder = new ConsoleBuilder;
-$consoleBuilder->addBuilder(new RelationalBuilder($settings['main'], 'main'));
-$consoleBuilder->addBuilder(new RelationalBuilder($settings['secondary'], 'secondary'));
+$consoleBuilder->addBuilder(new RelationalBuilder($settings['main'], 'one'));
+$consoleBuilder->addBuilder(new RelationalBuilder($settings['secondary'], 'two'));
 
 return $consoleBuilder->getApplication();
 ```
@@ -293,18 +293,18 @@ If you run `./vendor/bin/doctrine-manager list` you will find the commands prefi
 ```
 Available commands:
 ...
- main
-  main:dbal:import                          Import SQL file(s) directly to Database.
-  main:dbal:run-sql                         Executes arbitrary SQL directly from the command line.
-  main:orm:clear-cache:metadata             Clear all metadata cache of the various cache drivers.
-  main:orm:clear-cache:query                Clear all query cache of the various cache drivers.
-...
- secondary
-  secondary:dbal:import                     Import SQL file(s) directly to Database.
-  secondary:dbal:run-sql                    Executes arbitrary SQL directly from the command line.
-  secondary:orm:clear-cache:metadata        Clear all metadata cache of the various cache drivers.
-  secondary:orm:clear-cache:query           Clear all query cache of the various cache drivers.
-...
+ dbal
+  dbal:one:import               Import SQL file(s) directly to Database.
+  dbal:one:run-sql              Executes arbitrary SQL directly from the command line.
+  dbal:two:import               Import SQL file(s) directly to Database.
+  dbal:two:run-sql              Executes arbitrary SQL directly from the command line.
+  ...
+ orm
+  orm:one:clear-cache:metadata  Clear all metadata cache of the various cache drivers.
+  orm:one:clear-cache:query     Clear all query cache of the various cache drivers.
+  orm:two:clear-cache:metadata  Clear all metadata cache of the various cache drivers.
+  orm:two:clear-cache:query     Clear all query cache of the various cache drivers.
+  ...
 ```
 
 _doctrine-manager only allows named manager builders_

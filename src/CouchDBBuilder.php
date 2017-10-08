@@ -201,38 +201,46 @@ class CouchDBBuilder extends AbstractManagerBuilder
             new \Doctrine\ODM\CouchDB\Tools\Console\Command\GenerateProxiesCommand,
             new \Doctrine\ODM\CouchDB\Tools\Console\Command\UpdateDesignDocCommand,
         ];
+
+        $helperSet = $this->getConsoleHelperSet();
         $commandPrefix = (string) $this->getName();
 
-        if ($commandPrefix !== '') {
-            $commands = array_map(
-                function (Command $command) use ($commandPrefix) {
+        $commands = array_map(
+            function (Command $command) use ($helperSet, $commandPrefix) {
+                if ($commandPrefix !== '') {
                     $commandNames = array_map(
                         function ($commandName) use ($commandPrefix) {
-                            return preg_replace('/^couchdb:/', $commandPrefix . ':', $commandName);
+                            $key = preg_match('/^couchdb:odm:/', $commandName) ? 'couchdb_odm' : 'couchdb';
+
+                            return preg_replace(
+                                '/^couchdb:(odm:)?/',
+                                $key . ':' . $commandPrefix . ':',
+                                $commandName
+                            );
                         },
                         array_merge([$command->getName()], $command->getAliases())
                     );
 
                     $command->setName(array_shift($commandNames));
                     $command->setAliases($commandNames);
+                }
 
-                    return $command;
-                },
-                $commands
-            );
-        }
+                $command->setHelperSet($helperSet);
+
+                return $command;
+            },
+            $commands
+        );
 
         return $commands;
     }
 
     /**
-     * {@inheritdoc}
+     * Get console helper set.
      *
-     * @throws \InvalidArgumentException
-     * @throws \RuntimeException
-     * @throws \UnexpectedValueException
+     * @return \Symfony\Component\Console\Helper\HelperSet
      */
-    public function getConsoleHelperSet()
+    protected function getConsoleHelperSet()
     {
         /* @var DocumentManager $documentManager */
         $documentManager = $this->getManager();

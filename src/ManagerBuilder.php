@@ -123,11 +123,4 @@ interface ManagerBuilder
      * @return \Symfony\Component\Console\Command\Command[]
      */
     public function getConsoleCommands();
-
-    /**
-     * Get console helper set.
-     *
-     * @return \Symfony\Component\Console\Helper\HelperSet
-     */
-    public function getConsoleHelperSet();
 }

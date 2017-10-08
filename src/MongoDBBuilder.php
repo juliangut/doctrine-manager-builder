@@ -379,39 +379,40 @@ class MongoDBBuilder extends AbstractManagerBuilder
             new \Doctrine\ODM\MongoDB\Tools\Console\Command\Schema\DropCommand,
             new \Doctrine\ODM\MongoDB\Tools\Console\Command\Schema\UpdateCommand,
         ];
+
+        $helperSet = $this->getConsoleHelperSet();
         $commandPrefix = (string) $this->getName();
 
-        if ($commandPrefix !== '') {
-            $commands = array_map(
-                function (Command $command) use ($commandPrefix) {
+        $commands = array_map(
+            function (Command $command) use ($helperSet, $commandPrefix) {
+                if ($commandPrefix !== '') {
                     $commandNames = array_map(
                         function ($commandName) use ($commandPrefix) {
-                            return preg_replace('/^odm:/', $commandPrefix . ':odm:', $commandName);
+                            return preg_replace('/^odm:/', 'odm:' . $commandPrefix . ':', $commandName);
                         },
                         array_merge([$command->getName()], $command->getAliases())
                     );
 
                     $command->setName(array_shift($commandNames));
                     $command->setAliases($commandNames);
+                }
 
-                    return $command;
-                },
-                $commands
-            );
-        }
+                $command->setHelperSet($helperSet);
+
+                return $command;
+            },
+            $commands
+        );
 
         return $commands;
     }
 
     /**
-     * {@inheritdoc}
+     * Get console helper set.
      *
-     * @throws \Doctrine\ODM\MongoDB\MongoDBException
-     * @throws \InvalidArgumentException
-     * @throws \RuntimeException
-     * @throws \UnexpectedValueException
+     * @return \Symfony\Component\Console\Helper\HelperSet
      */
-    public function getConsoleHelperSet()
+    protected function getConsoleHelperSet()
     {
         /* @var DocumentManager $documentManager */
         $documentManager = $this->getManager();
