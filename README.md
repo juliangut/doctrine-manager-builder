@@ -137,7 +137,7 @@ $documentManager = $couchDBBuilder->getManager();
 * `second_level_cache_configuration` a `\Doctrine\ORM\Cache\CacheConfiguration`
 * `sql_logger` a `\Doctrine\DBAL\Logging\SQLLogger`
 * `custom_types` array of `'type_name' => '\Doctrine\DBAL\Types\Type'`
-* `custom_mapping_types` array of `'type_name' => 'Doctrine type: a constant on \Doctrine\DBAL\Types\Type'` is used in conjunction with custom_types
+* `custom_mapping_types` array of `'type_name' => 'Doctrine type: a constant on \Doctrine\DBAL\Types\Type'`. Used in conjunction with custom_types
 * `custom_filters` array of custom `'filter_name' => '\Doctrine\ORM\Query\Filter\SQLFilter'`
 * `string_functions` array of custom `'function_name' => '\Doctrine\ORM\Query\AST\Functions\FunctionNode'` for string DQL functions
 * `numeric_functions` array of custom `'function_name' => '\Doctrine\ORM\Query\AST\Functions\FunctionNode'` for numeric DQL functions
@@ -156,6 +156,7 @@ $documentManager = $couchDBBuilder->getManager();
 * `repository_factory` \Doctrine\ODM\MongoDB\Repository\RepositoryFactory
 * `default_repository_class` \Doctrine\ODM\MongoDB\DocumentRepository
 * `logger_callable` valid callable
+* `custom_types` array of `'type_name' => '\Doctrine\ODM\MongoDB\Types\Type'`
 * `custom_filters` array of custom `'filter_name' => '\Doctrine\ODM\MongoDB\Query\Filter\BsonFilter'`
 
 ### CouchDB ODM Document Manager

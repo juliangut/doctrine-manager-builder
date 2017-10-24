@@ -15,6 +15,8 @@ use Doctrine\Common\EventSubscriber;
 use Doctrine\MongoDB\Connection;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\Repository\DefaultRepositoryFactory;
+use Doctrine\ODM\MongoDB\Types\BooleanType;
+use Doctrine\ODM\MongoDB\Types\StringType;
 use Jgut\Doctrine\ManagerBuilder\ManagerBuilder;
 use Jgut\Doctrine\ManagerBuilder\MongoDBBuilder;
 use Symfony\Component\Console\Command\Command;
@@ -104,6 +106,7 @@ class MongoDBBuilderTest extends \PHPUnit_Framework_TestCase
         $this->builder->setOption('default_database', 'ddbb');
         $this->builder->setOption('logger_callable', 'class_exists');
         $this->builder->setOption('event_subscribers', ['event' => $eventSubscriber]);
+        $this->builder->setOption('custom_types', ['string' => StringType::class, 'fake_type' => BooleanType::class]);
         $this->builder->setOption('custom_filters', ['filter' => '\Doctrine\ODM\MongoDB\Query\Filter\BsonFilter']);
 
         static::assertInstanceOf(DocumentManager::class, $this->builder->getManager());

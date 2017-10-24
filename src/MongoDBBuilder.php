@@ -22,6 +22,7 @@ use Doctrine\ODM\MongoDB\Mapping\Driver\XmlDriver;
 use Doctrine\ODM\MongoDB\Mapping\Driver\YamlDriver;
 use Doctrine\ODM\MongoDB\Repository\RepositoryFactory;
 use Doctrine\ODM\MongoDB\Tools\Console\Helper\DocumentManagerHelper;
+use Doctrine\ODM\MongoDB\Types\Type;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\HelperSet;
 
@@ -144,6 +145,14 @@ class MongoDBBuilder extends AbstractManagerBuilder
 
         if ($this->getLoggerCallable() !== null) {
             $config->setLoggerCallable($this->getLoggerCallable());
+        }
+
+        foreach ($this->getCustomTypes() as $type => $class) {
+            if (Type::hasType($type)) {
+                Type::overrideType($type, $class);
+            } else {
+                Type::addType($type, $class);
+            }
         }
 
         foreach ($this->getCustomFilters() as $name => $filterClass) {
@@ -333,6 +342,24 @@ class MongoDBBuilder extends AbstractManagerBuilder
         }
 
         return $this->loggerCallable;
+    }
+
+    /**
+     * Retrieve custom types.
+     *
+     * @return array
+     */
+    protected function getCustomTypes()
+    {
+        $types = (array) $this->getOption('custom_types');
+
+        return array_filter(
+            $types,
+            function ($name) {
+                return is_string($name);
+            },
+            ARRAY_FILTER_USE_KEY
+        );
     }
 
     /**
