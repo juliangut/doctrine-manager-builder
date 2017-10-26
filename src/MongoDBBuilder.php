@@ -407,6 +407,10 @@ class MongoDBBuilder extends AbstractManagerBuilder
             new \Doctrine\ODM\MongoDB\Tools\Console\Command\Schema\UpdateCommand,
         ];
 
+        if (class_exists('Doctrine\ODM\MongoDB\Tools\Console\Command\Schema\ValidateCommand')) {
+            $commands[] = new \Doctrine\ODM\MongoDB\Tools\Console\Command\Schema\ValidateCommand();
+        }
+
         $helperSet = $this->getConsoleHelperSet();
         $commandPrefix = (string) $this->getName();
 
