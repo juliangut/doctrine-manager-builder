@@ -9,12 +9,21 @@
  * @author Julián Gutiérrez <juliangut@gmail.com>
  */
 
+declare(strict_types=1);
+
 namespace Jgut\Doctrine\ManagerBuilder;
 
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\Cache\CacheProvider;
-use Doctrine\DBAL\Logging\SQLLogger;
-use Doctrine\DBAL\Tools\Console\Helper\ConnectionHelper;
+use Doctrine\Common\Cache\Psr6\CacheAdapter;
+use Doctrine\Common\EventManager;
+use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Driver\Middleware as MiddlewareInterface;
+use Doctrine\DBAL\DriverManager;
+use Doctrine\DBAL\Logging\Middleware;
+use Doctrine\DBAL\Tools\Console\Command\ReservedWordsCommand;
+use Doctrine\DBAL\Tools\Console\Command\RunSqlCommand;
+use Doctrine\DBAL\Tools\Console\ConnectionProvider\SingleConnectionProvider;
 use Doctrine\DBAL\Types\Type;
 use Doctrine\ORM\Cache\CacheConfiguration;
 use Doctrine\ORM\Configuration;
@@ -22,611 +31,406 @@ use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Mapping\DefaultQuoteStrategy;
 use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
+use Doctrine\ORM\Mapping\Driver\AttributeDriver;
 use Doctrine\ORM\Mapping\Driver\XmlDriver;
 use Doctrine\ORM\Mapping\Driver\YamlDriver;
 use Doctrine\ORM\Mapping\NamingStrategy;
 use Doctrine\ORM\Mapping\QuoteStrategy;
 use Doctrine\ORM\Mapping\UnderscoreNamingStrategy;
+use Doctrine\ORM\ORMException;
+use Doctrine\ORM\Query\AST\Functions\FunctionNode;
+use Doctrine\ORM\Query\Filter\SQLFilter;
 use Doctrine\ORM\Repository\RepositoryFactory;
+use Doctrine\ORM\Tools\Console\Command\ClearCache\CollectionRegionCommand;
+use Doctrine\ORM\Tools\Console\Command\ClearCache\EntityRegionCommand;
+use Doctrine\ORM\Tools\Console\Command\ClearCache\MetadataCommand;
+use Doctrine\ORM\Tools\Console\Command\ClearCache\QueryCommand;
+use Doctrine\ORM\Tools\Console\Command\ClearCache\QueryRegionCommand;
+use Doctrine\ORM\Tools\Console\Command\ClearCache\ResultCommand;
+use Doctrine\ORM\Tools\Console\Command\ConvertMappingCommand;
+use Doctrine\ORM\Tools\Console\Command\EnsureProductionSettingsCommand;
+use Doctrine\ORM\Tools\Console\Command\GenerateProxiesCommand;
+use Doctrine\ORM\Tools\Console\Command\InfoCommand;
+use Doctrine\ORM\Tools\Console\Command\MappingDescribeCommand;
+use Doctrine\ORM\Tools\Console\Command\RunDqlCommand;
+use Doctrine\ORM\Tools\Console\Command\SchemaTool\CreateCommand;
+use Doctrine\ORM\Tools\Console\Command\SchemaTool\DropCommand;
+use Doctrine\ORM\Tools\Console\Command\SchemaTool\UpdateCommand;
+use Doctrine\ORM\Tools\Console\Command\ValidateSchemaCommand;
+use Doctrine\ORM\Tools\Console\EntityManagerProvider\SingleManagerProvider;
 use Doctrine\ORM\Tools\Console\Helper\EntityManagerHelper;
-use Doctrine\ORM\Version;
+use InvalidArgumentException;
+use Psr\Cache\CacheItemPoolInterface;
+use Psr\Log\LoggerInterface;
+use RuntimeException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\HelperSet;
+use UnexpectedValueException;
 
 /**
- * Doctrine RDBMS Entity Manager builder.
- *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * @SuppressWarnings(PHPMD.TooManyFields)
+ * @SuppressWarnings(PHPMD.LongVariable)
  * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  */
 class RelationalBuilder extends AbstractManagerBuilder
 {
-    /**
-     * Query cache driver.
-     *
-     * @var CacheProvider
-     */
-    protected $queryCacheDriver;
+    protected ?EntityManager $manager = null;
 
     /**
-     * Result cache driver.
-     *
-     * @var CacheProvider
+     * @var Connection|array<string, mixed>
      */
-    protected $resultCacheDriver;
+    protected Connection|array $connection = [];
+
+    protected string $proxiesNamespace = 'DoctrineRDBMSORMProxy';
+
+    protected ?RepositoryFactory $repositoryFactory = null;
 
     /**
-     * Hydrator cache driver.
-     *
-     * @var CacheProvider
+     * @var class-string<EntityRepository<object>>
      */
-    protected $hydratorCacheDriver;
+    protected string $defaultRepositoryClass = EntityRepository::class;
 
     /**
-     * Naming strategy.
-     *
-     * @var NamingStrategy
+     * @var CacheItemPoolInterface<mixed>|null
      */
-    protected $namingStrategy;
+    protected ?CacheItemPoolInterface $queryCache = null;
 
     /**
-     * Quote strategy.
-     *
-     * @var QuoteStrategy
+     * @var CacheItemPoolInterface<mixed>|null
      */
-    protected $quoteStrategy;
+    protected ?CacheItemPoolInterface $resultCache = null;
 
     /**
-     * Second level cache configuration.
-     *
-     * @var CacheConfiguration
+     * @var CacheItemPoolInterface<mixed>|null
      */
-    protected $secondCacheConfig;
+    protected ?CacheItemPoolInterface $hydrationCache = null;
+
+    protected ?NamingStrategy $namingStrategy = null;
+
+    protected ?QuoteStrategy $quoteStrategy = null;
+
+    protected ?CacheConfiguration $secondLevelCache = null;
+
+    protected ?MiddlewareInterface $sqlLoggerMiddleware = null;
 
     /**
-     * SQL logger.
-     *
-     * @var SQLLogger
+     * @var array<string, class-string<FunctionNode>|callable(string): FunctionNode>
      */
-    protected $SQLLogger;
+    protected array $customStringFunctions = [];
 
     /**
-     * {@inheritdoc}
+     * @var array<string, class-string<FunctionNode>|callable(string): FunctionNode>
      */
-    protected function getDefaultOptions()
+    protected array $customNumericFunctions = [];
+
+    /**
+     * @var array<string, class-string<FunctionNode>|callable(string): FunctionNode>
+     */
+    protected array $customDateTimeFunctions = [];
+
+    /**
+     * @var array<string, class-string<Type>>
+     */
+    protected array $customTypes = [];
+
+    /**
+     * @var array<string, string>
+     */
+    protected array $customMappingTypes = [];
+
+    /**
+     * @var array<string, class-string<SQLFilter>>
+     */
+    protected array $customFilters = [];
+
+    public function getManager(bool $force = false): EntityManager
     {
-        return [
-            'connection' => [], // Array or \Doctrine\DBAL\Connection
-            'proxies_namespace' => 'DoctrineRDBMSORMProxy',
-            'metadata_cache_namespace' => 'DoctrineRDBMSORMMetadataCache',
-            'query_cache_namespace' => 'DoctrineRDBMSORMQueryCache',
-            'result_cache_namespace' => 'DoctrineRDBMSORMResultCache',
-            'hydrator_cache_namespace' => 'DoctrineRDBMSORMHydratorCache',
-            'default_repository_class' => EntityRepository::class,
-            'second_level_cache_enable' => false,
-        ];
+        if ($force === true) {
+            $this->wipe();
+        }
+
+        if ($this->manager === null) {
+            $this->manager = $this->buildManager();
+        }
+
+        return $this->manager;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    protected function wipe()
+    protected function wipe(): void
     {
         $this->manager = null;
         $this->mappingDriver = null;
-        $this->metadataCacheDriver = null;
+        $this->metadataCache = null;
         $this->eventManager = null;
-        $this->queryCacheDriver = null;
-        $this->resultCacheDriver = null;
+        $this->queryCache = null;
+        $this->resultCache = null;
+        $this->hydrationCache = null;
         $this->namingStrategy = null;
         $this->quoteStrategy = null;
-        $this->SQLLogger = null;
+        $this->sqlLoggerMiddleware = null;
     }
 
     /**
-     * {@inheritdoc}
-     *
-     * @throws \Doctrine\DBAL\DBALException
-     * @throws \Doctrine\ORM\ORMException
-     * @throws \InvalidArgumentException
-     * @throws \RuntimeException
-     * @throws \UnexpectedValueException
-     *
-     * @return EntityManager
+     * @throws ORMException
+     * @throws InvalidArgumentException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
-    protected function buildManager()
+    protected function buildManager(): EntityManager
     {
         $config = new Configuration();
 
         $this->setUpGeneralConfigurations($config);
         $this->setUpSpecificConfigurations($config);
 
-        $eventManager = $this->getEventManager();
-        if ($this->getEventSubscribers() !== null) {
-            /* @var array $eventSubscribers */
-            $eventSubscribers = $this->getEventSubscribers();
-
-            foreach ($eventSubscribers as $eventSubscriber) {
-                $eventManager->addEventSubscriber($eventSubscriber);
-            }
+        $eventManager = $this->eventManager ?? new EventManager();
+        foreach ($this->eventSubscribers as $eventSubscriber) {
+            $eventManager->addEventSubscriber($eventSubscriber);
         }
 
-        $entityManager = EntityManager::create($this->getOption('connection'), $config, $eventManager);
+        $entityManager = new EntityManager($this->getConnection($config, $eventManager), $config);
 
-        $customMappingTypes = $this->getCustomMappingTypes();
+        if (\count($this->customTypes) !== 0) {
+            $platform = $entityManager->getConnection()
+                ->getDatabasePlatform();
 
-        $platform = $entityManager->getConnection()->getDatabasePlatform();
-        foreach ($this->getCustomTypes() as $type => $class) {
-            if (Type::hasType($type)) {
-                Type::overrideType($type, $class);
-            } else {
-                Type::addType($type, $class);
+            foreach ($this->customTypes as $type => $class) {
+                if (Type::hasType($type)) {
+                    Type::overrideType($type, $class);
+                } else {
+                    Type::addType($type, $class);
+                }
+
+                $platform->registerDoctrineTypeMapping($type, $this->customMappingTypes[$type] ?? $type);
             }
-
-            $platform->registerDoctrineTypeMapping(
-                $type,
-                array_key_exists($type, $customMappingTypes) ? $customMappingTypes[$type] : $type
-            );
         }
 
         return $entityManager;
     }
 
-    /**
-     * Set up general manager configurations.
-     *
-     * @param Configuration $config
-     */
-    protected function setUpGeneralConfigurations(Configuration $config)
+    protected function setUpGeneralConfigurations(Configuration $config): void
     {
-        $this->setupAnnotationMetadata();
         $config->setMetadataDriverImpl($this->getMetadataMappingDriver());
-
-        $config->setProxyDir($this->getProxiesPath());
-        $config->setProxyNamespace($this->getProxiesNamespace());
-        $config->setAutoGenerateProxyClasses($this->getProxiesAutoGeneration());
-
-        if ($this->getRepositoryFactory() !== null) {
-            $config->setRepositoryFactory($this->getRepositoryFactory());
+        $config->setProxyDir($this->proxiesPath ?? sys_get_temp_dir());
+        $config->setProxyNamespace($this->proxiesNamespace);
+        $config->setAutoGenerateProxyClasses($this->proxiesAutoGeneration);
+        if ($this->repositoryFactory !== null) {
+            $config->setRepositoryFactory($this->repositoryFactory);
         }
-
-        if ($this->getDefaultRepositoryClass() !== null) {
-            $config->setDefaultRepositoryClassName($this->getDefaultRepositoryClass());
-        }
-
-        $config->setMetadataCacheImpl($this->getMetadataCacheDriver());
+        $config->setDefaultRepositoryClassName($this->defaultRepositoryClass);
+        $config->setMetadataCache($this->metadataCache ?? $this->getInMemoryDummyCache());
     }
 
-    /**
-     * Set up manager specific configurations.
-     *
-     * @param Configuration $config
-     */
-    protected function setUpSpecificConfigurations(Configuration $config)
+    protected function setUpSpecificConfigurations(Configuration $config): void
     {
-        $config->setQueryCacheImpl($this->getQueryCacheDriver());
-        $config->setResultCacheImpl($this->getResultCacheDriver());
-        $config->setHydrationCacheImpl($this->getHydratorCacheDriver());
+        $config->setQueryCache($this->queryCache ?? $this->getInMemoryDummyCache());
+        $config->setResultCache($this->resultCache ?? $this->getInMemoryDummyCache());
+        $config->setHydrationCache($this->hydrationCache ?? $this->getInMemoryDummyCache());
+        $config->setNamingStrategy($this->namingStrategy ?? new UnderscoreNamingStrategy(\CASE_LOWER, true));
+        $config->setQuoteStrategy($this->quoteStrategy ?? new DefaultQuoteStrategy());
 
-        $config->setNamingStrategy($this->getNamingStrategy());
-        $config->setQuoteStrategy($this->getQuoteStrategy());
-
-        if ($this->getSecondLevelCacheConfiguration() !== null) {
-            $config->setSecondLevelCacheEnabled(true);
-            $config->setSecondLevelCacheConfiguration($this->getSecondLevelCacheConfiguration());
+        if ($this->secondLevelCache !== null) {
+            $config->setSecondLevelCacheEnabled();
+            $config->setSecondLevelCacheConfiguration($this->secondLevelCache);
         }
 
-        $config->setSQLLogger($this->getSQLLogger());
-        $config->setCustomStringFunctions($this->getCustomStringFunctions());
-        $config->setCustomNumericFunctions($this->getCustomNumericFunctions());
-        $config->setCustomDatetimeFunctions($this->getCustomDateTimeFunctions());
+        if ($this->sqlLoggerMiddleware !== null) {
+            $config->setMiddlewares([$this->sqlLoggerMiddleware]);
+        }
+        $config->setCustomStringFunctions($this->customStringFunctions);
+        $config->setCustomNumericFunctions($this->customNumericFunctions);
+        $config->setCustomDatetimeFunctions($this->customDateTimeFunctions);
 
-        foreach ($this->getCustomFilters() as $name => $filterClass) {
+        foreach ($this->customFilters as $name => $filterClass) {
             $config->addFilter($name, $filterClass);
         }
     }
 
     /**
-     * {@inheritdoc}
+     * @param Connection|array<string, mixed> $connection
      */
-    protected function getAnnotationMappingDriver(array $paths)
+    public function setConnection(Connection|array $connection): void
     {
-        return new AnnotationDriver(new AnnotationReader, $paths);
+        $this->connection = $connection;
+    }
+
+    public function setRepositoryFactory(RepositoryFactory $repositoryFactory): void
+    {
+        $this->repositoryFactory = $repositoryFactory;
     }
 
     /**
-     * {@inheritdoc}
-     */
-    protected function getXmlMappingDriver(array $paths, $extension = null)
-    {
-        $extension = $extension ?: XmlDriver::DEFAULT_FILE_EXTENSION;
-
-        return new XmlDriver($paths, $extension);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function getYamlMappingDriver(array $paths, $extension = null)
-    {
-        $extension = $extension ?: YamlDriver::DEFAULT_FILE_EXTENSION;
-
-        return new YamlDriver($paths, $extension);
-    }
-
-    /**
-     * {@inheritdoc}
+     * @param class-string<EntityRepository<object>> $defaultRepositoryClass
      *
-     * @throws \InvalidArgumentException
-     *
-     * @return RepositoryFactory|null
+     * @throws InvalidArgumentException
      */
-    protected function getRepositoryFactory()
+    public function setDefaultRepositoryClass(string $defaultRepositoryClass): void
     {
-        if (!array_key_exists('repository_factory', $this->options)) {
-            return;
-        }
-
-        $repositoryFactory = $this->options['repository_factory'];
-
-        if (!$repositoryFactory instanceof RepositoryFactory) {
-            throw new \InvalidArgumentException(sprintf(
-                'Invalid factory class "%s". It must be a Doctrine\ORM\Repository\RepositoryFactory.',
-                get_class($repositoryFactory)
-            ));
-        }
-
-        return $repositoryFactory;
-    }
-
-    /**
-     * Retrieve query cache driver.
-     *
-     * @throws \InvalidArgumentException
-     *
-     * @return CacheProvider
-     */
-    public function getQueryCacheDriver()
-    {
-        if (!$this->queryCacheDriver instanceof CacheProvider) {
-            $this->queryCacheDriver = $this->getCacheDriver(
-                (string) $this->getOption('query_cache_namespace'),
-                $this->getOption('query_cache_driver')
+        if (!class_exists($defaultRepositoryClass)
+            || !\in_array(EntityRepository::class, class_implements($defaultRepositoryClass), true)
+        ) {
+            throw new InvalidArgumentException(
+                sprintf('Repository class should implement "%s".', EntityRepository::class),
             );
         }
 
-        return $this->queryCacheDriver;
+        $this->defaultRepositoryClass = $defaultRepositoryClass;
     }
 
     /**
-     * Set query cache driver.
-     *
-     * @param CacheProvider $queryCacheDriver
+     * @param CacheItemPoolInterface<mixed>|CacheProvider $queryCache
      */
-    public function setQueryCacheDriver(CacheProvider $queryCacheDriver)
+    public function setQueryCache(CacheItemPoolInterface|CacheProvider $queryCache): void
     {
-        $this->queryCacheDriver = $queryCacheDriver;
-    }
-
-    /**
-     * Retrieve result cache driver.
-     *
-     * @throws \InvalidArgumentException
-     *
-     * @return CacheProvider
-     */
-    public function getResultCacheDriver()
-    {
-        if (!$this->resultCacheDriver instanceof CacheProvider) {
-            $this->resultCacheDriver = $this->getCacheDriver(
-                (string) $this->getOption('result_cache_namespace'),
-                $this->getOption('result_cache_driver')
-            );
+        if ($queryCache instanceof CacheProvider) {
+            $queryCache = CacheAdapter::wrap($queryCache);
         }
 
-        return $this->resultCacheDriver;
+        $this->queryCache = $queryCache;
     }
 
     /**
-     * Set result cache driver.
-     *
-     * @param CacheProvider $resultCacheDriver
+     * @param CacheItemPoolInterface<mixed>|CacheProvider $resultCache
      */
-    public function setResultCacheDriver(CacheProvider $resultCacheDriver)
+    public function setResultCache(CacheItemPoolInterface|CacheProvider $resultCache): void
     {
-        $this->resultCacheDriver = $resultCacheDriver;
-    }
-
-    /**
-     * Retrieve hydrator cache driver.
-     *
-     * @throws \InvalidArgumentException
-     *
-     * @return CacheProvider
-     */
-    public function getHydratorCacheDriver()
-    {
-        if (!$this->hydratorCacheDriver instanceof CacheProvider) {
-            $this->hydratorCacheDriver = $this->getCacheDriver(
-                (string) $this->getOption('hydrator_cache_namespace'),
-                $this->getOption('hydrator_cache_driver')
-            );
+        if ($resultCache instanceof CacheProvider) {
+            $resultCache = CacheAdapter::wrap($resultCache);
         }
 
-        return $this->hydratorCacheDriver;
+        $this->resultCache = $resultCache;
     }
 
     /**
-     * Set hydrator cache driver.
-     *
-     * @param CacheProvider $hydratorCacheDriver
+     * @param CacheItemPoolInterface<mixed>|CacheProvider $hydrationCache
      */
-    public function setHydratorCacheDriver(CacheProvider $hydratorCacheDriver)
+    public function setHydrationCache(CacheItemPoolInterface|CacheProvider $hydrationCache): void
     {
-        $this->hydratorCacheDriver = $hydratorCacheDriver;
-    }
-
-    /**
-     * Get cache driver.
-     *
-     * @param string             $cacheNamespace
-     * @param CacheProvider|null $cacheDriver
-     *
-     * @return CacheProvider
-     */
-    protected function getCacheDriver($cacheNamespace, CacheProvider $cacheDriver = null)
-    {
-        if (!$cacheDriver instanceof CacheProvider) {
-            $cacheDriver = clone $this->getMetadataCacheDriver();
-            $cacheDriver->setNamespace($cacheNamespace);
+        if ($hydrationCache instanceof CacheProvider) {
+            $hydrationCache = CacheAdapter::wrap($hydrationCache);
         }
 
-        if ($cacheDriver->getNamespace() === '') {
-            $cacheDriver->setNamespace($cacheNamespace);
-        }
+        $this->hydrationCache = $hydrationCache;
+    }
 
-        return $cacheDriver;
+    public function setNamingStrategy(NamingStrategy $namingStrategy): void
+    {
+        $this->namingStrategy = $namingStrategy;
+    }
+
+    public function setQuoteStrategy(QuoteStrategy $quoteStrategy): void
+    {
+        $this->quoteStrategy = $quoteStrategy;
+    }
+
+    public function setSecondLevelCache(CacheConfiguration $secondLevelCache): void
+    {
+        $this->secondLevelCache = $secondLevelCache;
+    }
+
+    public function setSqlLogger(LoggerInterface $sqlLogger): void
+    {
+        $this->sqlLoggerMiddleware = new Middleware($sqlLogger);
     }
 
     /**
-     * Retrieve naming strategy.
-     *
-     * @return NamingStrategy
+     * @param array<string, class-string<FunctionNode>|callable(string): FunctionNode> $stringFunctions
      */
-    protected function getNamingStrategy()
+    public function setCustomStringFunctions(array $stringFunctions): void
     {
-        if (!$this->namingStrategy instanceof NamingStrategy) {
-            $namingStrategy = $this->getOption('naming_strategy');
-
-            if (!$namingStrategy instanceof NamingStrategy) {
-                $namingStrategy = new UnderscoreNamingStrategy(CASE_LOWER);
-            }
-
-            $this->namingStrategy = $namingStrategy;
-        }
-
-        return $this->namingStrategy;
+        $this->customStringFunctions = $stringFunctions;
     }
 
     /**
-     * Retrieve quote strategy.
-     *
-     * @throws \InvalidArgumentException
-     *
-     * @return QuoteStrategy
+     * @param array<string, class-string<FunctionNode>|callable(string): FunctionNode> $numericFunctions
      */
-    protected function getQuoteStrategy()
+    public function setCustomNumericFunctions(array $numericFunctions): void
     {
-        if (!$this->quoteStrategy instanceof QuoteStrategy) {
-            $quoteStrategy = $this->getOption('quote_strategy');
-
-            if (!$quoteStrategy instanceof QuoteStrategy) {
-                $quoteStrategy = new DefaultQuoteStrategy;
-            }
-
-            $this->quoteStrategy = $quoteStrategy;
-        }
-
-        return $this->quoteStrategy;
+        $this->customNumericFunctions = $numericFunctions;
     }
 
     /**
-     * Retrieve second level cache configuration.
-     *
-     * @return CacheConfiguration|null
+     * @param array<string, class-string<FunctionNode>|callable(string): FunctionNode> $dateTimeFunctions
      */
-    protected function getSecondLevelCacheConfiguration()
+    public function setCustomDateTimeFunctions(array $dateTimeFunctions): void
     {
-        if (!$this->secondCacheConfig instanceof CacheConfiguration) {
-            $secondCacheConfig = $this->getOption('second_level_cache_configuration');
-
-            if ($secondCacheConfig instanceof CacheConfiguration) {
-                $this->secondCacheConfig = $secondCacheConfig;
-            }
-        }
-
-        return $this->secondCacheConfig;
+        $this->customDateTimeFunctions = $dateTimeFunctions;
     }
 
     /**
-     * Retrieve SQL logger.
-     *
-     * @return SQLLogger|null
+     * @param array<string, class-string<Type>> $types
      */
-    protected function getSQLLogger()
+    public function setCustomTypes(array $types): void
     {
-        if (!$this->SQLLogger instanceof SQLLogger) {
-            $sqlLogger = $this->getOption('sql_logger');
-
-            if ($sqlLogger instanceof SQLLogger) {
-                $this->SQLLogger = $sqlLogger;
-            }
-        }
-
-        return $this->SQLLogger;
+        $this->customTypes = $types;
     }
 
     /**
-     * Retrieve custom DQL string functions.
-     *
-     * @return array
+     * @param array<string, string> $mappingTypes
      */
-    protected function getCustomStringFunctions()
+    public function setCustomMappingTypes(array $mappingTypes): void
     {
-        $functions = (array) $this->getOption('custom_string_functions');
-
-        return array_filter(
-            $functions,
-            function ($name) {
-                return is_string($name);
-            },
-            ARRAY_FILTER_USE_KEY
-        );
+        $this->customMappingTypes = $mappingTypes;
     }
 
     /**
-     * Retrieve custom DQL numeric functions.
-     *
-     * @return array
+     * @param array<string, class-string<SQLFilter>> $filters
      */
-    protected function getCustomNumericFunctions()
+    public function setCustomFilters(array $filters): void
     {
-        $functions = (array) $this->getOption('custom_numeric_functions');
-
-        return array_filter(
-            $functions,
-            function ($name) {
-                return is_string($name);
-            },
-            ARRAY_FILTER_USE_KEY
-        );
+        $this->customFilters = $filters;
     }
 
     /**
-     * Retrieve custom DQL date time functions.
+     * @throws ORMException
+     * @throws InvalidArgumentException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
      *
-     * @return array
+     * @return array<Command>
      */
-    protected function getCustomDateTimeFunctions()
+    public function getConsoleCommands(): array
     {
-        $functions = (array) $this->getOption('custom_datetime_functions');
+        $entityManager = $this->getManager();
 
-        return array_filter(
-            $functions,
-            function ($name) {
-                return is_string($name);
-            },
-            ARRAY_FILTER_USE_KEY
-        );
-    }
+        $connectionProvider = new SingleConnectionProvider($entityManager->getConnection());
+        $entityManagerProvider = new SingleManagerProvider($entityManager);
 
-    /**
-     * Retrieve custom DBAL types.
-     *
-     * @return array
-     */
-    protected function getCustomTypes()
-    {
-        $types = (array) $this->getOption('custom_types');
-
-        return array_filter(
-            $types,
-            function ($name) {
-                return is_string($name);
-            },
-            ARRAY_FILTER_USE_KEY
-        );
-    }
-
-    /**
-     * Retrieve custom DBAL mapping types.
-     *
-     * @return array
-     */
-    protected function getCustomMappingTypes()
-    {
-        $mappingTypes = (array) $this->getOption('custom_mapping_types');
-
-        return array_filter(
-            $mappingTypes,
-            function ($name) {
-                return is_string($name);
-            },
-            ARRAY_FILTER_USE_KEY
-        );
-    }
-
-    /**
-     * Get custom registered filters.
-     *
-     * @return array
-     */
-    protected function getCustomFilters()
-    {
-        $filters = (array) $this->getOption('custom_filters');
-
-        return array_filter(
-            $filters,
-            function ($name) {
-                return is_string($name);
-            },
-            ARRAY_FILTER_USE_KEY
-        );
-    }
-
-    /**
-     * {@inheritdoc}
-     *
-     * @throws \Doctrine\DBAL\DBALException
-     * @throws \Doctrine\ORM\ORMException
-     * @throws \InvalidArgumentException
-     * @throws \RuntimeException
-     * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
-     * @throws \Symfony\Component\Console\Exception\LogicException
-     * @throws \UnexpectedValueException
-     *
-     * @return Command[]
-     */
-    public function getConsoleCommands()
-    {
         $commands = [
-            // DBAL
-            new \Doctrine\DBAL\Tools\Console\Command\RunSqlCommand(),
-            new \Doctrine\DBAL\Tools\Console\Command\ImportCommand(),
+            // DBAL Commands
+            new ReservedWordsCommand($connectionProvider),
+            new RunSqlCommand($connectionProvider),
 
-            // ORM
-            new \Doctrine\ORM\Tools\Console\Command\ClearCache\MetadataCommand(),
-            new \Doctrine\ORM\Tools\Console\Command\ClearCache\ResultCommand(),
-            new \Doctrine\ORM\Tools\Console\Command\ClearCache\QueryCommand(),
-            new \Doctrine\ORM\Tools\Console\Command\SchemaTool\CreateCommand(),
-            new \Doctrine\ORM\Tools\Console\Command\SchemaTool\UpdateCommand(),
-            new \Doctrine\ORM\Tools\Console\Command\SchemaTool\DropCommand(),
-            new \Doctrine\ORM\Tools\Console\Command\EnsureProductionSettingsCommand(),
-            new \Doctrine\ORM\Tools\Console\Command\ConvertDoctrine1SchemaCommand(),
-            new \Doctrine\ORM\Tools\Console\Command\GenerateRepositoriesCommand(),
-            new \Doctrine\ORM\Tools\Console\Command\GenerateEntitiesCommand(),
-            new \Doctrine\ORM\Tools\Console\Command\GenerateProxiesCommand(),
-            new \Doctrine\ORM\Tools\Console\Command\ConvertMappingCommand(),
-            new \Doctrine\ORM\Tools\Console\Command\RunDqlCommand(),
-            new \Doctrine\ORM\Tools\Console\Command\ValidateSchemaCommand(),
-            new \Doctrine\ORM\Tools\Console\Command\InfoCommand(),
+            // ORM Commands
+            new ConvertMappingCommand($entityManagerProvider),
+            new EnsureProductionSettingsCommand($entityManagerProvider),
+            new GenerateProxiesCommand($entityManagerProvider),
+            new InfoCommand($entityManagerProvider),
+            new MappingDescribeCommand($entityManagerProvider),
+            new RunDqlCommand($entityManagerProvider),
+            new ValidateSchemaCommand($entityManagerProvider),
+            new CollectionRegionCommand($entityManagerProvider),
+            new EntityRegionCommand($entityManagerProvider),
+            new MetadataCommand($entityManagerProvider),
+            new QueryCommand($entityManagerProvider),
+            new QueryRegionCommand($entityManagerProvider),
+            new ResultCommand($entityManagerProvider),
+            new CreateCommand($entityManagerProvider),
+            new DropCommand($entityManagerProvider),
+            new UpdateCommand($entityManagerProvider),
         ];
 
-        if (Version::compare('2.5') <= 0) {
-            $commands[] = new \Doctrine\ORM\Tools\Console\Command\MappingDescribeCommand();
-        }
-
-        $helperSet = $this->getConsoleHelperSet();
+        $helperSet = $this->getConsoleHelperSet($entityManager);
         $commandPrefix = (string) $this->getName();
 
-        $commands = array_map(
-            function (Command $command) use ($helperSet, $commandPrefix) {
+        return array_map(
+            static function (Command $command) use ($helperSet, $commandPrefix): Command {
                 if ($commandPrefix !== '') {
                     $commandNames = array_map(
-                        function ($commandName) use ($commandPrefix) {
-                            return preg_replace('/^(dbal|orm):/', '$1:' . $commandPrefix . ':', $commandName);
-                        },
-                        array_merge([$command->getName()], $command->getAliases())
+                        static fn(string $commandName): string
+                            => (string) preg_replace('/^(dbal|orm):/', '$1-' . $commandPrefix . ':', $commandName),
+                        array_merge([$command->getName()], $command->getAliases()),
                     );
 
                     $command->setName(array_shift($commandNames));
@@ -637,25 +441,58 @@ class RelationalBuilder extends AbstractManagerBuilder
 
                 return $command;
             },
-            $commands
+            $commands,
         );
+    }
 
-        return $commands;
+    protected function getConsoleHelperSet(EntityManager $entityManager): HelperSet
+    {
+        return new HelperSet([
+            'em' => new EntityManagerHelper($entityManager),
+        ]);
+    }
+
+    protected function getConnection(Configuration $config, EventManager $eventManager): Connection
+    {
+        $connection = $this->connection;
+        if (\is_array($connection)) {
+            $connection = DriverManager::getConnection($connection, $config, $eventManager);
+
+            $this->connection = $connection;
+        }
+
+        return $connection;
     }
 
     /**
-     * Get console helper set.
-     *
-     * @return \Symfony\Component\Console\Helper\HelperSet
+     * @param list<string> $paths
      */
-    protected function getConsoleHelperSet()
+    protected function getAttributeMappingDriver(array $paths): AttributeDriver
     {
-        /* @var EntityManager $entityManager */
-        $entityManager = $this->getManager();
+        return new AttributeDriver($paths);
+    }
 
-        return new HelperSet([
-            'db' => new ConnectionHelper($entityManager->getConnection()),
-            'em' => new EntityManagerHelper($entityManager),
-        ]);
+    /**
+     * @param list<string> $paths
+     */
+    protected function getAnnotationMappingDriver(array $paths): AnnotationDriver
+    {
+        return new AnnotationDriver(new AnnotationReader(), $paths);
+    }
+
+    /**
+     * @param list<string> $paths
+     */
+    protected function getXmlMappingDriver(array $paths, ?string $extension = null): XmlDriver
+    {
+        return new XmlDriver($paths, $extension ?? XmlDriver::DEFAULT_FILE_EXTENSION);
+    }
+
+    /**
+     * @param list<string> $paths
+     */
+    protected function getYamlMappingDriver(array $paths, ?string $extension = null): YamlDriver
+    {
+        return new YamlDriver($paths, $extension ?? YamlDriver::DEFAULT_FILE_EXTENSION);
     }
 }

@@ -9,124 +9,132 @@
  * @author Julián Gutiérrez <juliangut@gmail.com>
  */
 
+declare(strict_types=1);
+
 namespace Jgut\Doctrine\ManagerBuilder\Tests;
 
 use Doctrine\Common\EventSubscriber;
-use Doctrine\MongoDB\Connection;
 use Doctrine\ODM\MongoDB\DocumentManager;
+use Doctrine\ODM\MongoDB\Query\Filter\BsonFilter;
 use Doctrine\ODM\MongoDB\Repository\DefaultRepositoryFactory;
 use Doctrine\ODM\MongoDB\Types\BooleanType;
 use Doctrine\ODM\MongoDB\Types\StringType;
+use InvalidArgumentException;
+use Jgut\Doctrine\ManagerBuilder\Console\Command\MongoDB\InfoCommand;
 use Jgut\Doctrine\ManagerBuilder\ManagerBuilder;
 use Jgut\Doctrine\ManagerBuilder\MongoDBBuilder;
-use Symfony\Component\Console\Command\Command;
+use Jgut\Doctrine\ManagerBuilder\Tests\Stub\ConsoleOutputStub;
+use MongoDB\Client;
+use PHPUnit\Framework\TestCase;
+use RuntimeException;
+use stdClass;
+use Symfony\Component\Console\Input\StringInput;
 
 /**
- * MongoDB entity builder tests.
+ * @internal
  *
- * @group mongodb
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
-class MongoDBBuilderTest extends \PHPUnit_Framework_TestCase
+class MongoDBBuilderTest extends TestCase
 {
-    /**
-     * @var MongoDBBuilder
-     */
-    protected $builder;
-
-    /**
-     * {@inheritdoc}
-     */
-    public function setUp()
+    public function testBadRepositoryClass(): void
     {
-        $this->builder = new MongoDBBuilder([], 'test');
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessageMatches('/^Repository class should implement ".+\\DocumentRepository"\.$/');
+
+        $builder = new MongoDBBuilder();
+        $builder->setDefaultRepositoryClass(stdClass::class);
     }
 
-    /**
-     * @expectedException \InvalidArgumentException
-     */
-    public function testManagerNoConnection()
+    public function testBadHydrationAutoGeneration(): void
     {
-        $this->builder->setOption('connection', null);
-        $this->builder->setOption(
-            'metadata_mapping',
-            [
-                ['type' => ManagerBuilder::METADATA_MAPPING_ANNOTATION, 'path' => __DIR__, 'namespace' => 'annotation'],
-                ['type' => ManagerBuilder::METADATA_MAPPING_XML, 'path' => __DIR__, 'namespace' => 'xml'],
-                ['type' => ManagerBuilder::METADATA_MAPPING_YAML, 'path' => __DIR__, 'namespace' => 'yaml'],
-                ['type' => ManagerBuilder::METADATA_MAPPING_PHP, 'path' => __DIR__, 'namespace' => 'php'],
-            ]
-        );
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid hydration auto generation value "-1".');
 
-        $this->builder->getManager(true);
+        $builder = new MongoDBBuilder();
+        $builder->setHydrationAutoGeneration(-1);
     }
 
-    /**
-     * @expectedException \InvalidArgumentException
-     */
-    public function testBadRepositoryFactory()
+    public function testBadPersistCollectionAutoGeneration(): void
     {
-        $this->builder->setOption('connection', new Connection('localhost'));
-        $this->builder->setOption(
-            'metadata_mapping',
-            [['type' => ManagerBuilder::METADATA_MAPPING_ANNOTATION, 'path' => __DIR__]]
-        );
-        $this->builder->setOption('repository_factory', new \stdClass);
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid persist collection auto generation value "-1".');
 
-        $this->builder->getManager();
+        $builder = new MongoDBBuilder();
+        $builder->setPersistentCollectionAutoGeneration(-1);
     }
 
-    /**
-     * @expectedException \RuntimeException
-     * @expectedExceptionMessage Cannot use different EventManager instances for DocumentManager and Connection.
-     */
-    public function testManageWrongConnection()
+    public function testUnsupportedYamlMapping(): void
     {
-        $this->builder->setOption('connection', new Connection('localhost'));
-        $this->builder->setOption(
-            'metadata_mapping',
-            [['type' => ManagerBuilder::METADATA_MAPPING_ANNOTATION, 'path' => __DIR__]]
-        );
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Yaml driver is no longer available.');
 
-        $this->builder->getManager();
+        $builder = new MongoDBBuilder();
+        $builder->setMetadataMapping([
+            ['type' => ManagerBuilder::METADATA_MAPPING_YAML, 'path' => __DIR__],
+        ]);
+
+        $builder->getManager(true);
     }
 
-    public function testManager()
+    public function testManager(): void
     {
         $eventSubscriber = $this->getMockBuilder(EventSubscriber::class)
             ->disableOriginalConstructor()
             ->getMock();
-        $connection = new Connection('localhost', [], null, $this->builder->getEventManager());
+        $eventSubscriber
+            ->method('getSubscribedEvents')
+            ->willReturn('event');
 
-        $this->builder->setOption('connection', $connection);
-        $this->builder->setOption(
-            'metadata_mapping',
-            [['type' => ManagerBuilder::METADATA_MAPPING_ANNOTATION, 'path' => __DIR__]]
-        );
-        $this->builder->setOption('repository_factory', new DefaultRepositoryFactory);
-        $this->builder->setOption('default_database', 'ddbb');
-        $this->builder->setOption('logger_callable', 'class_exists');
-        $this->builder->setOption('event_subscribers', ['event' => $eventSubscriber]);
-        $this->builder->setOption('custom_types', ['string' => StringType::class, 'fake_type' => BooleanType::class]);
-        $this->builder->setOption('custom_filters', ['filter' => '\Doctrine\ODM\MongoDB\Query\Filter\BsonFilter']);
+        $builder = new MongoDBBuilder();
+        $builder->setClient(new Client('mongodb://localhost'));
+        $builder->setMetadataMapping([
+            ['type' => ManagerBuilder::METADATA_MAPPING_ATTRIBUTE, 'path' => __DIR__],
+        ]);
+        $builder->setRepositoryFactory(new DefaultRepositoryFactory());
+        $builder->setDefaultDatabase('ddbb');
+        $builder->setEventSubscribers([$eventSubscriber]);
+        $builder->setCustomTypes(['string' => StringType::class, 'fake_type' => BooleanType::class]);
+        $builder->setCustomFilters(['filter' => BsonFilter::class]);
 
-        static::assertInstanceOf(DocumentManager::class, $this->builder->getManager());
+        static::assertInstanceOf(DocumentManager::class, $builder->getManager());
     }
 
-    public function testConsoleCommands()
+    public function testConsoleCommands(): void
     {
-        $this->builder->setOption('connection', ['server' => 'localhost']);
-        $this->builder->setOption(
-            'metadata_mapping',
-            [['type' => ManagerBuilder::METADATA_MAPPING_ANNOTATION, 'path' => __DIR__]]
-        );
+        $builder = new MongoDBBuilder(['name' => 'builder-name']);
+        $builder->setMetadataMapping([
+            ['type' => ManagerBuilder::METADATA_MAPPING_ATTRIBUTE, 'path' => __DIR__],
+        ]);
+        $builder->setMetadataMapping([
+            [
+                'type' => ManagerBuilder::METADATA_MAPPING_ATTRIBUTE,
+                'path' => __DIR__ . '/Mapping/Files/MongoDB/Attribute',
+                'namespace' => 'Jgut\Doctrine\ManagerBuilder\Tests\Mapping\Files\MongoDB\Attribute',
+            ],
+            [
+                'type' => ManagerBuilder::METADATA_MAPPING_ANNOTATION,
+                'path' => __DIR__ . '/Mapping/Files/MongoDB/Annotation',
+                'namespace' => 'Jgut\Doctrine\ManagerBuilder\Tests\Mapping\Files\MongoDB\Annotation',
+            ],
+        ]);
 
-        $commands = $this->builder->getConsoleCommands();
+        foreach ($builder->getConsoleCommands() as $command) {
+            static::assertMatchesRegularExpression('/^odm-builder-name:/', (string) $command->getName());
 
-        return array_walk(
-            $commands,
-            function (Command $command) {
-                static::assertEquals(1, preg_match('/^odm:test:/', $command->getName()));
+            if ($command instanceof InfoCommand) {
+                $output = new ConsoleOutputStub();
+                $command->run(new StringInput(''), $output);
+
+                static::assertStringContainsString(
+                    'Jgut\Doctrine\ManagerBuilder\Tests\Mapping\Files\MongoDB\Attribute',
+                    $output->getOutput(),
+                );
+                static::assertStringContainsString(
+                    'Jgut\Doctrine\ManagerBuilder\Tests\Mapping\Files\MongoDB\Annotation',
+                    $output->getOutput(),
+                );
             }
-        );
+        }
     }
 }

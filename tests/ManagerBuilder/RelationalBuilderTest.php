@@ -9,276 +9,201 @@
  * @author Julián Gutiérrez <juliangut@gmail.com>
  */
 
+declare(strict_types=1);
+
 namespace Jgut\Doctrine\ManagerBuilder\Tests;
 
-use Doctrine\Common\Cache\ArrayCache;
-use Doctrine\Common\Cache\CacheProvider;
 use Doctrine\Common\EventSubscriber;
-use Doctrine\Common\Persistence\Mapping\Driver\StaticPHPDriver;
-use Doctrine\DBAL\Logging\EchoSQLLogger;
+use Doctrine\DBAL\Exception as DBALException;
 use Doctrine\DBAL\Types\BooleanType;
 use Doctrine\DBAL\Types\StringType;
-use Doctrine\DBAL\Types\Type;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Cache\CacheConfiguration;
 use Doctrine\ORM\Cache\CacheFactory;
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\Query\AST\Functions\CountFunction;
+use Doctrine\ORM\Query\AST\Functions\DateDiffFunction;
+use Doctrine\ORM\Query\AST\Functions\LowerFunction;
+use Doctrine\ORM\Query\Filter\SQLFilter;
 use Doctrine\ORM\Repository\DefaultRepositoryFactory;
+use Doctrine\ORM\Tools\Console\Command\InfoCommand;
+use Doctrine\Persistence\Mapping\Driver\PHPDriver;
+use InvalidArgumentException;
 use Jgut\Doctrine\ManagerBuilder\ManagerBuilder;
 use Jgut\Doctrine\ManagerBuilder\RelationalBuilder;
-use Symfony\Component\Console\Command\Command;
+use Jgut\Doctrine\ManagerBuilder\Tests\Stub\ConsoleOutputStub;
+use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
+use RuntimeException;
+use stdClass;
+use Symfony\Component\Console\Input\StringInput;
+use UnexpectedValueException;
 
 /**
- * Relational entity builder tests.
+ * @internal
  *
- * @group relational
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
-class RelationalBuilderTest extends \PHPUnit_Framework_TestCase
+class RelationalBuilderTest extends TestCase
 {
-    /**
-     * @var RelationalBuilder
-     */
-    protected $builder;
-
-    /**
-     * {@inheritdoc}
-     */
-    public function setUp()
+    public function testBadRepositoryClass(): void
     {
-        $this->builder = new RelationalBuilder([], 'test');
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessageMatches('/^Repository class should implement ".+\\EntityRepository"\.$/');
+
+        $builder = new RelationalBuilder();
+        $builder->setDefaultRepositoryClass(stdClass::class);
     }
 
-    public function testQueryCache()
+    public function testManagerNoMetadataMapping(): void
     {
-        $cacheDriver = $this->getMockBuilder(CacheProvider::class)
-            ->disableOriginalConstructor()
-            ->setMethodsExcept(['getNamespace', 'setNamespace'])
-            ->getMock();
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('No metadata mapping defined.');
 
-        $this->builder->setOption('query_cache_driver', $cacheDriver);
-        $this->builder->setOption('query_cache_namespace', 'namespace');
-
-        /* @var CacheProvider $driver */
-        $driver = $this->builder->getQueryCacheDriver();
-        self::assertEquals($cacheDriver, $driver);
-        self::assertEquals('namespace', $driver->getNamespace());
-
-        /* @var CacheProvider $cacheDriver */
-        $cacheDriver = $this->getMockBuilder(ArrayCache::class)
-            ->disableOriginalConstructor()
-            ->setMethodsExcept(['getNamespace'])
-            ->getMock();
-        $this->builder->setQueryCacheDriver($cacheDriver);
-
-        self::assertEquals($cacheDriver, $this->builder->getQueryCacheDriver());
+        $builder = new RelationalBuilder();
+        $builder->getManager();
     }
 
-    public function testResultCache()
+    public function testManagerNoMappingDriver(): void
     {
-        $cacheDriver = $this->getMockBuilder(CacheProvider::class)
-            ->disableOriginalConstructor()
-            ->setMethodsExcept(['getNamespace', 'setNamespace'])
-            ->getMock();
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Metadata mapping must be array with "driver" key or "type" and "path" keys.');
 
-        $this->builder->setOption('result_cache_driver', $cacheDriver);
-        $this->builder->setOption('result_cache_namespace', '');
+        $builder = new RelationalBuilder();
+        $builder->setMetadataMapping([[]]);
 
-        self::assertInstanceOf(CacheProvider::class, $this->builder->getResultCacheDriver());
-
-        /* @var CacheProvider $cacheDriver */
-        $cacheDriver = $this->getMockBuilder(CacheProvider::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $this->builder->setResultCacheDriver($cacheDriver);
-
-        self::assertEquals($cacheDriver, $this->builder->getResultCacheDriver());
+        $builder->getManager();
     }
 
-    public function testHydratorCache()
+    public function testManagerWrongMappingDriver(): void
     {
-        $cacheDriver = $this->getMockBuilder(CacheProvider::class)
-            ->disableOriginalConstructor()
-            ->setMethodsExcept(['getNamespace', 'setNamespace'])
-            ->getMock();
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessageMatches('/^Provided driver should be an instance of ".+", "string" given\.$/');
 
-        $this->builder->setOption('hydrator_cache_driver', $cacheDriver);
-        $this->builder->setOption('hydrator_cache_namespace', '');
+        $builder = new RelationalBuilder();
+        $builder->setMetadataMapping([__DIR__]);
 
-        self::assertInstanceOf(CacheProvider::class, $this->builder->getHydratorCacheDriver());
-
-        /* @var CacheProvider $cacheDriver */
-        $cacheDriver = $this->getMockBuilder(CacheProvider::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $this->builder->setHydratorCacheDriver($cacheDriver);
-
-        self::assertEquals($cacheDriver, $this->builder->getHydratorCacheDriver());
+        $builder->getManager();
     }
 
-    /**
-     * @expectedException \RuntimeException
-     * @expectedExceptionMessageRegExp /^".+" file does not exist$/
-     */
-    public function testManagerNoAnnotationFile()
+    public function testManagerWrongMappingType(): void
     {
-        $this->builder->setOption('annotation_files', __DIR__ . '/fake_file.php');
+        $this->expectException(UnexpectedValueException::class);
+        $this->expectExceptionMessageMatches('/^".+" is not a valid metadata mapping type\.$/');
 
-        $this->builder->getManager(true);
+        $builder = new RelationalBuilder();
+        $builder->setMetadataMapping([['type' => 'unknown', 'path' => __DIR__]]);
+
+        $builder->getManager();
     }
 
-    /**
-     * @expectedException \RuntimeException
-     * @expectedExceptionMessage No metadata mapping defined
-     */
-    public function testManagerNoMetadataMapping()
+    public function testManagerSingleDefaultMapping(): void
     {
-        $this->builder->getManager();
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Only one default metadata mapping driver allowed, a namespace must be defined.');
+
+        $builder = new RelationalBuilder();
+        $builder->setMetadataMapping([
+            ['driver' => new PHPDriver([__DIR__])],
+            ['type' => ManagerBuilder::METADATA_MAPPING_XML, 'path' => __DIR__, 'namespace' => 'namespace'],
+            ['type' => ManagerBuilder::METADATA_MAPPING_YAML, 'path' => __DIR__],
+        ]);
+
+        $builder->getManager();
     }
 
-    /**
-     * @expectedException \RuntimeException
-     * @expectedExceptionMessage metadata_mapping must be array with "driver" key or "type" and "path" keys
-     */
-    public function testManagerNoMappingDriver()
+    public function testManagerNoConnection(): void
     {
-        $this->builder->setOption('metadata_mapping', [[]]);
-
-        $this->builder->getManager(true);
-    }
-
-    /**
-     * @expectedException \RuntimeException
-     * @expectedExceptionMessageRegExp /^Provided driver should be of the type MappingDriver, ".+" given$/
-     */
-    public function testManagerWrongMappingDriver()
-    {
-        $this->builder->setOption('metadata_mapping', [__DIR__]);
-
-        $this->builder->getManager(true);
-    }
-
-    /**
-     * @expectedException \UnexpectedValueException
-     * @expectedExceptionMessageRegExp /^".+" is not a valid metadata mapping type$/
-     */
-    public function testManagerWrongMappingType()
-    {
-        $this->builder->setOption('metadata_mapping', [['type' => 'unknown', 'path' => __DIR__]]);
-
-        $this->builder->getManager(true);
-    }
-
-    /**
-     * @expectedException \RuntimeException
-     * @expectedExceptionMessage Only one default metadata mapping driver allowed, a namespace must be defined
-     */
-    public function testManagerSingleDefaultMapping()
-    {
-        $this->builder->setOption(
-            'metadata_mapping',
-            [
-                ['driver' => new StaticPHPDriver([__DIR__])],
-                ['type' => ManagerBuilder::METADATA_MAPPING_XML, 'path' => __DIR__, 'namespace' => 'namespace'],
-                ['type' => ManagerBuilder::METADATA_MAPPING_YAML, 'path' => __DIR__],
-            ]
+        $this->expectException(DBALException::class);
+        $this->expectExceptionMessageMatches(
+            '/^The options \'driver\' or \'driverClass\' are mandatory if no PDO instance/',
         );
 
-        $this->builder->getManager(true);
+        $builder = new RelationalBuilder();
+        $builder->setMetadataMapping([
+            ['type' => ManagerBuilder::METADATA_MAPPING_ATTRIBUTE, 'path' => __DIR__, 'namespace' => 'annotation'],
+            ['type' => ManagerBuilder::METADATA_MAPPING_XML, 'path' => __DIR__, 'namespace' => 'xml'],
+            ['type' => ManagerBuilder::METADATA_MAPPING_YAML, 'path' => __DIR__, 'namespace' => 'yaml'],
+            ['type' => ManagerBuilder::METADATA_MAPPING_PHP, 'path' => __DIR__, 'namespace' => 'php'],
+        ]);
+
+        $builder->getManager(true);
     }
 
-    /**
-     * @expectedException \Doctrine\DBAL\DBALException
-     * @expectedExceptionMessageRegExp /^The options 'driver' or 'driverClass' are mandatory if no PDO instance/
-     */
-    public function testManagerNoConnection()
-    {
-        $this->builder->setOption(
-            'metadata_mapping',
-            [
-                ['type' => ManagerBuilder::METADATA_MAPPING_ANNOTATION, 'path' => __DIR__, 'namespace' => 'annotation'],
-                ['type' => ManagerBuilder::METADATA_MAPPING_XML, 'path' => __DIR__, 'namespace' => 'xml'],
-                ['type' => ManagerBuilder::METADATA_MAPPING_YAML, 'path' => __DIR__, 'namespace' => 'yaml'],
-                ['type' => ManagerBuilder::METADATA_MAPPING_PHP, 'path' => __DIR__, 'namespace' => 'php'],
-            ]
-        );
-
-        $this->builder->getManager(true);
-    }
-
-    /**
-     * @expectedException \InvalidArgumentException
-     */
-    public function testBadRepositoryFactory()
-    {
-        $this->builder->setOption('annotation_files', __FILE__);
-        $this->builder->setOption('annotation_namespaces', ['namespace' => __FILE__]);
-        $this->builder->setOption('annotation_autoloaders', ['class_exists']);
-        $this->builder->setOption('connection', ['driver' => 'pdo_sqlite', 'memory' => true]);
-        $this->builder->setOption(
-            'metadata_mapping',
-            [['type' => ManagerBuilder::METADATA_MAPPING_ANNOTATION, 'path' => __DIR__]]
-        );
-        $this->builder->setOption('repository_factory', new \stdClass);
-
-        $this->builder->getManager();
-    }
-
-    public function testManager()
+    public function testManager(): void
     {
         $eventSubscriber = $this->getMockBuilder(EventSubscriber::class)
             ->disableOriginalConstructor()
             ->getMock();
+        $eventSubscriber
+            ->method('getSubscribedEvents')
+            ->willReturn('event');
 
-        /* @var CacheFactory $cacheFactory */
         $cacheFactory = $this->getMockBuilder(CacheFactory::class)
-        ->disableOriginalConstructor()
-        ->getMock();
+            ->disableOriginalConstructor()
+            ->getMock();
 
         $cacheConfiguration = $this->getMockBuilder(CacheConfiguration::class)
             ->disableOriginalConstructor()
             ->getMock();
 
-        $cacheConfiguration->expects(self::once())
+        $cacheConfiguration->expects(static::once())
             ->method('getCacheFactory')
-            ->will(self::returnValue($cacheFactory));
-        /* CacheConfiguration $cache */
+            ->willReturn($cacheFactory);
 
-        $this->builder->setOption('annotation_files', __FILE__);
-        $this->builder->setOption('annotation_namespaces', ['namespace' => __FILE__]);
-        $this->builder->setOption('annotation_autoloaders', ['class_exists']);
-        $this->builder->setOption('connection', ['driver' => 'pdo_sqlite', 'memory' => true]);
-        $this->builder->setOption(
-            'metadata_mapping',
-            [['type' => ManagerBuilder::METADATA_MAPPING_ANNOTATION, 'path' => __DIR__]]
-        );
-        $this->builder->setOption('repository_factory', new DefaultRepositoryFactory);
-        $this->builder->setOption('second_level_cache_configuration', $cacheConfiguration);
-        $this->builder->setOption('sql_logger', new EchoSQLLogger);
-        $this->builder->setOption('custom_string_functions', 'string');
-        $this->builder->setOption('custom_numeric_functions', 'numeric');
-        $this->builder->setOption('custom_datetime_functions', 'datetime');
-        $this->builder->setOption('custom_types', ['string' => StringType::class, 'fake_type' => BooleanType::class]);
-        $this->builder->setOption('custom_mapping_types', ['string' => Type::STRING, 'fake_type' => Type::BOOLEAN]);
-        $this->builder->setOption('event_subscribers', ['event' => $eventSubscriber]);
-        $this->builder->setOption('custom_filters', ['filter' => '\Doctrine\ORM\Query\Filter\SQLFilter']);
+        $logger = $this->getMockBuilder(LoggerInterface::class)
+            ->getMock();
 
-        static::assertInstanceOf(EntityManager::class, $this->builder->getManager());
+        $builder = new RelationalBuilder();
+        $builder->setConnection(['driver' => 'pdo_sqlite', 'memory' => true]);
+        $builder->setMetadataMapping([['type' => ManagerBuilder::METADATA_MAPPING_ATTRIBUTE, 'path' => __DIR__]]);
+        $builder->setRepositoryFactory(new DefaultRepositoryFactory());
+        $builder->setSecondLevelCache($cacheConfiguration);
+        $builder->setSqlLogger($logger);
+        $builder->setCustomStringFunctions(['lower' => LowerFunction::class]);
+        $builder->setCustomNumericFunctions(['count' => CountFunction::class]);
+        $builder->setCustomDateTimeFunctions(['diff' => DateDiffFunction::class]);
+        $builder->setCustomTypes(['string' => StringType::class, 'fake_type' => BooleanType::class]);
+        $builder->setCustomMappingTypes(['string' => Types::STRING, 'fake_type' => Types::BOOLEAN]);
+        $builder->setCustomFilters(['filter' => SQLFilter::class]);
+        $builder->setEventSubscribers([$eventSubscriber]);
+
+        static::assertInstanceOf(EntityManager::class, $builder->getManager());
     }
 
-    public function testConsoleCommands()
+    public function testConsoleCommands(): void
     {
-        $this->builder->setOption('connection', ['driver' => 'pdo_sqlite', 'memory' => true]);
-        $this->builder->setOption(
-            'metadata_mapping',
-            [['type' => ManagerBuilder::METADATA_MAPPING_ANNOTATION, 'path' => __DIR__]]
-        );
+        $builder = new RelationalBuilder(['name' => 'builder-name']);
+        $builder->setConnection(['driver' => 'pdo_sqlite', 'memory' => true]);
+        $builder->setMetadataMapping([
+            [
+                'type' => ManagerBuilder::METADATA_MAPPING_ATTRIBUTE,
+                'path' => __DIR__ . '/Mapping/Files/Relational/Attribute',
+                'namespace' => 'Jgut\Doctrine\ManagerBuilder\Tests\Mapping\Files\Relational\Attribute',
+            ],
+            [
+                'type' => ManagerBuilder::METADATA_MAPPING_ANNOTATION,
+                'path' => __DIR__ . '/Mapping/Files/Relational/Annotation',
+                'namespace' => 'Jgut\Doctrine\ManagerBuilder\Tests\Mapping\Files\Relational\Annotation',
+            ],
+        ]);
 
-        $commands = $this->builder->getConsoleCommands();
+        foreach ($builder->getConsoleCommands() as $command) {
+            static::assertMatchesRegularExpression('/^(dbal|orm)-builder-name:/', (string) $command->getName());
 
-        return array_walk(
-            $commands,
-            function (Command $command) {
-                static::assertEquals(1, preg_match('/^(dbal|orm):test:/', $command->getName()));
+            if ($command instanceof InfoCommand) {
+                $output = new ConsoleOutputStub();
+                $command->run(new StringInput(''), $output);
+
+                static::assertStringContainsString(
+                    'Jgut\Doctrine\ManagerBuilder\Tests\Mapping\Files\Relational\Attribute',
+                    $output->getOutput(),
+                );
+                static::assertStringContainsString(
+                    'Jgut\Doctrine\ManagerBuilder\Tests\Mapping\Files\Relational\Annotation',
+                    $output->getOutput(),
+                );
             }
-        );
+        }
     }
 }

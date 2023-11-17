@@ -9,117 +9,84 @@
  * @author Julián Gutiérrez <juliangut@gmail.com>
  */
 
+declare(strict_types=1);
+
 namespace Jgut\Doctrine\ManagerBuilder\Tests;
 
 use Jgut\Doctrine\ManagerBuilder\AbstractBuilderCollection;
-use Jgut\Doctrine\ManagerBuilder\AbstractManagerBuilder;
+use Jgut\Doctrine\ManagerBuilder\ManagerBuilder;
+use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 /**
- * Abstract builder collection tests.
+ * @internal
  */
-class AbstractBuilderCollectionTest extends \PHPUnit_Framework_TestCase
+class AbstractBuilderCollectionTest extends TestCase
 {
-    public function testAddRemoveBuilder()
+    public function testAddRemoveBuilder(): void
     {
-        $builder = $this->getMockBuilder(AbstractManagerBuilder::class)
-            ->disableOriginalConstructor()
-            ->setMethods(['getName'])
-            ->getMockForAbstractClass();
+        $builder = $this->getMockBuilder(ManagerBuilder::class)
+            ->getMock();
         $builder
-            ->expects(self::any())
             ->method('getName')
-            ->will(self::returnValue('builder'));
-        /* @var AbstractManagerBuilder $builder */
+            ->willReturn('builder');
 
-        /* @var AbstractBuilderCollection $collection */
-        $collection = $this->getMockBuilder(AbstractBuilderCollection::class)
-            ->disableOriginalConstructor()
-            ->setMethodsExcept(['addBuilders', 'addBuilder', 'getBuilders', 'getBuilder', 'removeBuilder'])
-            ->getMockForAbstractClass();
-
+        $collection = new class () extends AbstractBuilderCollection {};
         $collection->addBuilders([$builder]);
 
-        self::assertCount(1, $collection->getBuilders());
-        self::assertEquals($builder, $collection->getBuilder('builder'));
+        static::assertCount(1, $collection->getBuilders());
+        static::assertEquals($builder, $collection->getBuilder('builder'));
 
         $collection->removeBuilder($builder);
 
-        self::assertCount(0, $collection->getBuilders());
-        self::assertNull($collection->getBuilder('builder'));
+        static::assertCount(0, $collection->getBuilders());
+        static::assertNull($collection->getBuilder('builder'));
     }
 
-    /**
-     * @expectedException \RuntimeException
-     * @expectedExceptionMessage Only named manager builders allowed
-     */
-    public function testAddUnnamedBuilder()
+    public function testAddUnnamedBuilder(): void
     {
-        /* @var AbstractManagerBuilder $builder */
-        $builder = $this->getMockBuilder(AbstractManagerBuilder::class)
-            ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Only named manager builders allowed');
 
-        /* @var AbstractBuilderCollection $collection */
-        $collection = $this->getMockBuilder(AbstractBuilderCollection::class)
-            ->disableOriginalConstructor()
-            ->setMethodsExcept(['addBuilder'])
-            ->getMockForAbstractClass();
+        $builder = $this->getMockBuilder(ManagerBuilder::class)
+            ->getMock();
 
+        $collection = new class () extends AbstractBuilderCollection {};
         $collection->addBuilder($builder);
     }
 
-    /**
-     * @expectedException \RuntimeException
-     * @expectedExceptionMessage Only named manager builders allowed
-     */
-    public function testRemoveUnnamedBuilder()
+    public function testRemoveUnnamedBuilder(): void
     {
-        /* @var AbstractManagerBuilder $builder */
-        $builder = $this->getMockBuilder(AbstractManagerBuilder::class)
-            ->disableOriginalConstructor()
-            ->getMockForAbstractClass();
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Only named manager builders allowed');
 
-        /* @var AbstractBuilderCollection $collection */
-        $collection = $this->getMockBuilder(AbstractBuilderCollection::class)
-            ->disableOriginalConstructor()
-            ->setMethodsExcept(['removeBuilder'])
-            ->getMockForAbstractClass();
+        $builder = $this->getMockBuilder(ManagerBuilder::class)
+            ->getMock();
 
+        $collection = new class () extends AbstractBuilderCollection {};
         $collection->removeBuilder($builder);
     }
 
-    /**
-     * @expectedException \RuntimeException
-     * @expectedExceptionMessage "builder" manager builder is already registered
-     */
-    public function testDuplicatedBuilder()
+    public function testDuplicatedBuilder(): void
     {
-        $builder = $this->getMockBuilder(AbstractManagerBuilder::class)
-            ->disableOriginalConstructor()
-            ->setMethods(['getName'])
-            ->getMockForAbstractClass();
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('"builder" manager builder is already registered');
+
+        $builder = $this->getMockBuilder(ManagerBuilder::class)
+            ->getMock();
         $builder
-            ->expects(self::once())
+            ->expects(static::once())
             ->method('getName')
-            ->will(self::returnValue('builder'));
-        /* @var AbstractManagerBuilder $builder */
+            ->willReturn('builder');
 
-        $duplicatedBuilder = $this->getMockBuilder(AbstractManagerBuilder::class)
-            ->disableOriginalConstructor()
-            ->setMethods(['getName'])
-            ->getMockForAbstractClass();
+        $duplicatedBuilder = $this->getMockBuilder(ManagerBuilder::class)
+            ->getMock();
         $duplicatedBuilder
-            ->expects(self::once())
+            ->expects(static::once())
             ->method('getName')
-            ->will(self::returnValue('builder'));
-        /* @var AbstractManagerBuilder $duplicatedBuilder */
+            ->willReturn('builder');
 
-        /* @var AbstractBuilderCollection $collection */
-        $collection = $this->getMockBuilder(AbstractBuilderCollection::class)
-            ->disableOriginalConstructor()
-            ->setMethodsExcept(['addBuilder'])
-            ->getMockForAbstractClass();
-
+        $collection = new class () extends AbstractBuilderCollection {};
         $collection->addBuilder($builder);
         $collection->addBuilder($duplicatedBuilder);
     }

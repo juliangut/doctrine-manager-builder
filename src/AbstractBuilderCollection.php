@@ -9,54 +9,38 @@
  * @author Julián Gutiérrez <juliangut@gmail.com>
  */
 
+declare(strict_types=1);
+
 namespace Jgut\Doctrine\ManagerBuilder;
 
-/**
- * Builder collection.
- */
+use RuntimeException;
+
 abstract class AbstractBuilderCollection
 {
     /**
-     * Builders.
-     *
-     * @var ManagerBuilder[]
+     * @var array<string, ManagerBuilder>
      */
-    protected $builders = [];
+    protected array $builders = [];
 
     /**
-     * Get registered builders.
-     *
-     * @return ManagerBuilder[]
+     * @return array<string, ManagerBuilder>
      */
-    public function getBuilders()
+    public function getBuilders(): array
     {
-        return array_values($this->builders);
+        return $this->builders;
+    }
+
+    public function getBuilder(string $builderName): ?ManagerBuilder
+    {
+        return $this->builders[$builderName] ?? null;
     }
 
     /**
-     * Get registered builder by name.
+     * @param list<ManagerBuilder> $builders
      *
-     * @param string $builderName
-     *
-     * @return ManagerBuilder|null
+     * @throws RuntimeException
      */
-    public function getBuilder($builderName)
-    {
-        if (array_key_exists($builderName, $this->builders)) {
-            return $this->builders[$builderName];
-        }
-
-        return;
-    }
-
-    /**
-     * Add builders.
-     *
-     * @param ManagerBuilder[] $builders
-     *
-     * @throws \RuntimeException
-     */
-    public function addBuilders(array $builders)
+    public function addBuilders(array $builders): void
     {
         foreach ($builders as $builder) {
             $this->addBuilder($builder);
@@ -64,41 +48,33 @@ abstract class AbstractBuilderCollection
     }
 
     /**
-     * Add builder.
-     *
-     * @param ManagerBuilder $builder
-     *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      */
-    public function addBuilder(ManagerBuilder $builder)
+    public function addBuilder(ManagerBuilder $builder): void
     {
-        $builderName = (string) $builder->getName();
-        if ($builderName === '') {
-            throw new \RuntimeException('Only named manager builders allowed');
+        $builderName = $builder->getName();
+        if ($builderName === null || $builderName === '') {
+            throw new RuntimeException('Only named manager builders allowed.');
         }
 
-        if (array_key_exists($builderName, $this->builders)) {
-            throw new \RuntimeException(sprintf('"%s" manager builder is already registered', $builderName));
+        if (\array_key_exists($builderName, $this->builders)) {
+            throw new RuntimeException(sprintf('"%s" manager builder is already registered.', $builderName));
         }
 
         $this->builders[$builderName] = $builder;
     }
 
     /**
-     * Remove registered builder.
-     *
-     * @param ManagerBuilder $builder
-     *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      */
-    public function removeBuilder(ManagerBuilder $builder)
+    public function removeBuilder(ManagerBuilder $builder): void
     {
-        $builderName = (string) $builder->getName();
-        if ($builderName === '') {
-            throw new \RuntimeException('Only named manager builders allowed');
+        $builderName = $builder->getName();
+        if ($builderName === null || $builderName === '') {
+            throw new RuntimeException('Only named manager builders allowed.');
         }
 
-        if (array_key_exists($builderName, $this->builders)) {
+        if (\array_key_exists($builderName, $this->builders)) {
             unset($this->builders[$builderName]);
         }
     }

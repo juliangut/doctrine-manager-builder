@@ -9,52 +9,45 @@
  * @author Julián Gutiérrez <juliangut@gmail.com>
  */
 
+declare(strict_types=1);
+
 namespace Jgut\Doctrine\ManagerBuilder\Tests;
 
-use Jgut\Doctrine\ManagerBuilder\AbstractManagerBuilder;
 use Jgut\Doctrine\ManagerBuilder\ConsoleBuilder;
-use Jgut\Doctrine\ManagerBuilder\RelationalBuilder;
-use Symfony\Component\Console\Application;
+use Jgut\Doctrine\ManagerBuilder\ManagerBuilder;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\HelperSet;
 
 /**
- * Console builder tests.
- *
- * @group console
+ * @internal
  */
-class ConsoleBuilderTest extends \PHPUnit_Framework_TestCase
+class ConsoleBuilderTest extends TestCase
 {
-    public function testApplication()
+    public function testApplication(): void
     {
         $helperSet = $this->getMockBuilder(HelperSet::class)
             ->disableOriginalConstructor()
             ->getMock();
-        /* @var HelperSet $helperSet */
 
         $command = new Command('command');
         $command->setHelperSet($helperSet);
 
-        $builder = $this->getMockBuilder(RelationalBuilder::class)
-            ->disableOriginalConstructor()
+        $builder = $this->getMockBuilder(ManagerBuilder::class)
             ->getMock();
         $builder
-            ->expects(self::once())
             ->method('getName')
-            ->will(self::returnValue('command'));
+            ->willReturn('command');
         $builder
-            ->expects(self::once())
             ->method('getConsoleCommands')
-            ->will(self::returnValue([$command]));
-        /* @var AbstractManagerBuilder $builder */
+            ->willReturn([$command]);
 
         $consoleBuilder = new ConsoleBuilder();
 
         $consoleBuilder->addBuilder($builder);
 
         $application = $consoleBuilder->getApplication();
-        self::assertInstanceOf(Application::class, $application);
 
-        self::assertTrue($application->has('command'));
+        static::assertTrue($application->has('command'));
     }
 }

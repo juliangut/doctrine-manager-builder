@@ -9,30 +9,22 @@
  * @author Julián Gutiérrez <juliangut@gmail.com>
  */
 
+declare(strict_types=1);
+
 namespace Jgut\Doctrine\ManagerBuilder;
 
 use Symfony\Component\Console\Application;
 
-/**
- * Console builder.
- */
 class ConsoleBuilder extends AbstractBuilderCollection
 {
-    /**
-     * Get console application.
-     *
-     * @return Application
-     */
-    public function getApplication()
+    public function getApplication(): Application
     {
         $application = new Application('Doctrine Manager Builder Command Line Interface');
         $application->setCatchExceptions(true);
 
         foreach ($this->builders as $builder) {
             foreach ($builder->getConsoleCommands() as $command) {
-                $helperSet = $command->getHelperSet();
-
-                $application->add($command)->setHelperSet($helperSet);
+                $application->add($command);
             }
         }
 

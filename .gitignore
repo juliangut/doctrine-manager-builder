@@ -1,6 +1,6 @@
 !.gitignore
 composer.lock
 vendor/
-.yo-rc.json
-.php_cs.cache
+*.cache
+infection-log.*
 build/

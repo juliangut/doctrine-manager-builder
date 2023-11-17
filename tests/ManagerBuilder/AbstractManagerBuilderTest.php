@@ -9,93 +9,35 @@
  * @author Julián Gutiérrez <juliangut@gmail.com>
  */
 
+declare(strict_types=1);
+
 namespace Jgut\Doctrine\ManagerBuilder\Tests;
 
-use Doctrine\Common\Cache\CacheProvider;
-use Doctrine\Common\EventManager;
-use Doctrine\Common\Persistence\Mapping\Driver\MappingDriverChain;
+use InvalidArgumentException;
 use Jgut\Doctrine\ManagerBuilder\AbstractManagerBuilder;
+use PHPUnit\Framework\TestCase;
 
 /**
- * Abstract manager builder tests.
+ * @internal
  */
-class AbstractManagerBuilderTest extends \PHPUnit_Framework_TestCase
+class AbstractManagerBuilderTest extends TestCase
 {
-    public function testName()
+    public function testInvalidConfigurationOption(): void
     {
-        /* @var AbstractManagerBuilder $objectBuilder */
-        $objectBuilder = $this->getMockBuilder(AbstractManagerBuilder::class)
-            ->disableOriginalConstructor()
-            ->setMethodsExcept(['getName', 'setName'])
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Unknown configuration "option".');
+
+        $this->getMockBuilder(AbstractManagerBuilder::class)
+            ->setConstructorArgs([['option' => 'value']])
             ->getMockForAbstractClass();
-
-        $objectBuilder->setName('Object_Builder');
-
-        self::assertEquals('Object_Builder', $objectBuilder->getName());
     }
 
-    public function testMetadataMappingDriver()
+    public function testConfigurationName(): void
     {
-        /* @var AbstractManagerBuilder $objectBuilder */
         $objectBuilder = $this->getMockBuilder(AbstractManagerBuilder::class)
-            ->disableOriginalConstructor()
-            ->setMethodsExcept([
-                'getOption',
-                'setOption',
-                'getMetadataMappingDriver',
-                'setMetadataMappingDriver',
-            ])
+            ->setConstructorArgs([['name' => 'Object_Builder']])
             ->getMockForAbstractClass();
 
-        /* @var MappingDriverChain $mappingDriver */
-        $mappingDriver = $this->getMockBuilder(MappingDriverChain::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $objectBuilder->setMetadataMappingDriver($mappingDriver);
-
-        self::assertEquals($mappingDriver, $objectBuilder->getMetadataMappingDriver());
-    }
-
-    public function testMetadataCache()
-    {
-        /* @var AbstractManagerBuilder $objectBuilder */
-        $objectBuilder = $this->getMockBuilder(AbstractManagerBuilder::class)
-            ->disableOriginalConstructor()
-            ->setMethodsExcept([
-                'getOption',
-                'setOption',
-                'getMetadataCacheDriver',
-                'setMetadataCacheDriver',
-            ])
-            ->getMockForAbstractClass();
-
-        self::assertInstanceOf(CacheProvider::class, $objectBuilder->getMetadataCacheDriver());
-
-        /* @var CacheProvider $metadataCacheDriver */
-        $metadataCacheDriver = $this->getMockBuilder(CacheProvider::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $objectBuilder->setMetadataCacheDriver($metadataCacheDriver);
-
-        self::assertEquals($metadataCacheDriver, $objectBuilder->getMetadataCacheDriver());
-    }
-
-    public function testEventManager()
-    {
-        /* @var AbstractManagerBuilder $objectBuilder */
-        $objectBuilder = $this->getMockBuilder(AbstractManagerBuilder::class)
-            ->disableOriginalConstructor()
-            ->setMethodsExcept(['getEventManager', 'setEventManager'])
-            ->getMockForAbstractClass();
-
-        self::assertInstanceOf(EventManager::class, $objectBuilder->getEventManager());
-
-        /* @var EventManager $eventManager */
-        $eventManager = $this->getMockBuilder(EventManager::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $objectBuilder->setEventManager($eventManager);
-
-        self::assertEquals($eventManager, $objectBuilder->getEventManager());
+        static::assertEquals('Object_Builder', $objectBuilder->getName());
     }
 }

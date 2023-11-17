@@ -9,145 +9,140 @@
  * @author Julián Gutiérrez <juliangut@gmail.com>
  */
 
+declare(strict_types=1);
+
 namespace Jgut\Doctrine\ManagerBuilder;
 
 use Doctrine\Common\Annotations\AnnotationReader;
+use Doctrine\Common\EventManager;
 use Doctrine\Common\Proxy\AbstractProxyFactory;
-use Doctrine\MongoDB\Connection;
 use Doctrine\ODM\MongoDB\Configuration;
 use Doctrine\ODM\MongoDB\DocumentManager;
-use Doctrine\ODM\MongoDB\DocumentRepository;
 use Doctrine\ODM\MongoDB\Mapping\Driver\AnnotationDriver;
+use Doctrine\ODM\MongoDB\Mapping\Driver\AttributeDriver;
 use Doctrine\ODM\MongoDB\Mapping\Driver\XmlDriver;
-use Doctrine\ODM\MongoDB\Mapping\Driver\YamlDriver;
+use Doctrine\ODM\MongoDB\Query\Filter\BsonFilter;
+use Doctrine\ODM\MongoDB\Repository\DocumentRepository;
 use Doctrine\ODM\MongoDB\Repository\RepositoryFactory;
+use Doctrine\ODM\MongoDB\Tools\Console\Command\ClearCache\MetadataCommand;
+use Doctrine\ODM\MongoDB\Tools\Console\Command\GenerateHydratorsCommand;
+use Doctrine\ODM\MongoDB\Tools\Console\Command\GeneratePersistentCollectionsCommand;
+use Doctrine\ODM\MongoDB\Tools\Console\Command\GenerateProxiesCommand;
+use Doctrine\ODM\MongoDB\Tools\Console\Command\QueryCommand;
+use Doctrine\ODM\MongoDB\Tools\Console\Command\Schema\CreateCommand;
+use Doctrine\ODM\MongoDB\Tools\Console\Command\Schema\DropCommand;
+use Doctrine\ODM\MongoDB\Tools\Console\Command\Schema\ShardCommand;
+use Doctrine\ODM\MongoDB\Tools\Console\Command\Schema\UpdateCommand;
+use Doctrine\ODM\MongoDB\Tools\Console\Command\Schema\ValidateCommand;
 use Doctrine\ODM\MongoDB\Tools\Console\Helper\DocumentManagerHelper;
 use Doctrine\ODM\MongoDB\Types\Type;
+use Doctrine\Persistence\Mapping\Driver\MappingDriver;
+use InvalidArgumentException;
+use Jgut\Doctrine\ManagerBuilder\Console\Command\MongoDB\InfoCommand;
+use MongoDB\Client;
+use RuntimeException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\HelperSet;
+use UnexpectedValueException;
 
 /**
- * Doctrine MongoDB Document Manager builder.
- *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
+ * @SuppressWarnings(PHPMD.LongVariable)
  */
 class MongoDBBuilder extends AbstractManagerBuilder
 {
-    /**
-     * Logger callable.
-     *
-     * @var callable
-     */
-    protected $loggerCallable;
+    protected ?DocumentManager $manager = null;
 
     /**
-     * {@inheritdoc}
+     * @var Client|array{uri?: string, uriOptions?: array<string, mixed>, driverOptions?: array<string, mixed>}
      */
-    protected function getDefaultOptions()
+    protected Client|array $client = [];
+
+    protected string $proxiesNamespace = 'DoctrineMongoDBODMProxy';
+
+    /**
+     * @var int<0, 4>
+     */
+    protected int $proxiesAutoGeneration = AbstractProxyFactory::AUTOGENERATE_FILE_NOT_EXISTS;
+
+    protected ?RepositoryFactory $repositoryFactory = null;
+
+    /**
+     * @var class-string<DocumentRepository<object>>
+     */
+    protected string $defaultRepositoryClass = DocumentRepository::class;
+
+    protected ?string $hydrationPath = null;
+
+    protected string $hydrationNamespace = 'DoctrineMongoDBODMHydration';
+
+    /**
+     * @var int<0, 3>
+     */
+    protected int $hydrationAutoGeneration = Configuration::AUTOGENERATE_NEVER;
+
+    protected ?string $persistentCollectionPath = null;
+
+    protected string $persistentCollectionNamespace = 'DoctrineMongoDBODMPersistentCollection';
+
+    /**
+     * @var int<0, 3>
+     */
+    protected int $persistentCollectionAutoGeneration = Configuration::AUTOGENERATE_NEVER;
+
+    protected ?string $defaultDatabase = null;
+
+    /**
+     * @var array<string, class-string<Type>>
+     */
+    protected array $customTypes = [];
+
+    /**
+     * @var array<string, class-string<BsonFilter>>
+     */
+    protected array $customFilters = [];
+
+    public function getManager(bool $force = false): DocumentManager
     {
-        return [
-            'connection' => [], // Array or \Doctrine\MongoDB\Connection
-            'proxies_namespace' => 'DoctrineMongoDBODMProxy',
-            'metadata_cache_namespace' => 'DoctrineMongoDBODMMetadataCache',
-            'default_repository_class' => DocumentRepository::class,
-            'hydrators_namespace' => 'DoctrineMongoDBODMHydrator',
-            'hydrators_auto_generation' => AbstractProxyFactory::AUTOGENERATE_NEVER,
-            'persistent_collections_namespace' => 'DoctrineMongoDBODMPersistentCollection',
-            'persistent_collections_auto_generation' => AbstractProxyFactory::AUTOGENERATE_NEVER,
-        ];
+        if ($force === true) {
+            $this->wipe();
+        }
+
+        if ($this->manager === null) {
+            $this->manager = $this->buildManager();
+        }
+
+        return $this->manager;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    protected function wipe()
+    protected function wipe(): void
     {
         $this->manager = null;
         $this->mappingDriver = null;
-        $this->metadataCacheDriver = null;
+        $this->metadataCache = null;
         $this->eventManager = null;
-        $this->loggerCallable = null;
     }
 
     /**
-     * {@inheritdoc}
-     *
-     * @throws \Doctrine\ODM\MongoDB\MongoDBException
-     * @throws \InvalidArgumentException
-     * @throws \RuntimeException
-     * @throws \UnexpectedValueException
-     *
-     * @return DocumentManager
+     * @throws InvalidArgumentException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
      */
-    protected function buildManager()
+    protected function buildManager(): DocumentManager
     {
-        $config = new Configuration;
+        $config = new Configuration();
 
         $this->setUpGeneralConfigurations($config);
         $this->setUpSpecificConfigurations($config);
 
-        $eventManager = $this->getEventManager();
-        if ($this->getEventSubscribers() !== null) {
-            /* @var array $eventSubscribers */
-            $eventSubscribers = $this->getEventSubscribers();
-
-            foreach ($eventSubscribers as $eventSubscriber) {
-                $eventManager->addEventSubscriber($eventSubscriber);
-            }
+        $eventManager = $this->eventManager ?? new EventManager();
+        foreach ($this->eventSubscribers as $eventSubscriber) {
+            $eventManager->addEventSubscriber($eventSubscriber);
         }
 
-        return DocumentManager::create($this->getConnection($config), $config, $eventManager);
-    }
+        $documentManager = DocumentManager::create($this->getClient(), $config, $eventManager);
 
-    /**
-     * Set up general manager configurations.
-     *
-     * @param Configuration $config
-     */
-    protected function setUpGeneralConfigurations(Configuration $config)
-    {
-        $this->setupAnnotationMetadata();
-        $config->setMetadataDriverImpl($this->getMetadataMappingDriver());
-
-        $config->setProxyDir($this->getProxiesPath());
-        $config->setProxyNamespace($this->getProxiesNamespace());
-        $config->setAutoGenerateProxyClasses($this->getProxiesAutoGeneration());
-
-        if ($this->getRepositoryFactory() !== null) {
-            $config->setRepositoryFactory($this->getRepositoryFactory());
-        }
-
-        if ($this->getDefaultRepositoryClass() !== null) {
-            $config->setDefaultRepositoryClassName($this->getDefaultRepositoryClass());
-        }
-
-        $config->setMetadataCacheImpl($this->getMetadataCacheDriver());
-    }
-
-    /**
-     * Set up manager specific configurations.
-     *
-     * @param Configuration $config
-     */
-    protected function setUpSpecificConfigurations(Configuration $config)
-    {
-        $config->setHydratorDir($this->getHydratorsPath());
-        $config->setHydratorNamespace($this->getHydratorsNamespace());
-        $config->setAutoGenerateHydratorClasses($this->getHydratorsAutoGeneration());
-
-        $config->setPersistentCollectionDir($this->getPersistentCollectionPath());
-        $config->setPersistentCollectionNamespace($this->getPersistentCollectionNamespace());
-        $config->setAutoGeneratePersistentCollectionClasses($this->getAutoGeneratePersistentCollection());
-
-        if ($this->getDefaultDatabase() !== null) {
-            $config->setDefaultDB($this->getDefaultDatabase());
-        }
-
-        if ($this->getLoggerCallable() !== null) {
-            $config->setLoggerCallable($this->getLoggerCallable());
-        }
-
-        foreach ($this->getCustomTypes() as $type => $class) {
+        foreach ($this->customTypes as $type => $class) {
             if (Type::hasType($type)) {
                 Type::overrideType($type, $class);
             } else {
@@ -155,273 +150,199 @@ class MongoDBBuilder extends AbstractManagerBuilder
             }
         }
 
-        foreach ($this->getCustomFilters() as $name => $filterClass) {
-            $config->addFilter($name, $filterClass);
+        return $documentManager;
+    }
+
+    protected function setUpGeneralConfigurations(Configuration $config): void
+    {
+        $config->setMetadataDriverImpl($this->getMetadataMappingDriver());
+        $config->setProxyDir($this->proxiesPath ?? sys_get_temp_dir());
+        $config->setProxyNamespace($this->proxiesNamespace);
+        $config->setAutoGenerateProxyClasses($this->proxiesAutoGeneration);
+        if ($this->repositoryFactory !== null) {
+            $config->setRepositoryFactory($this->repositoryFactory);
+        }
+        $config->setDefaultDocumentRepositoryClassName($this->defaultRepositoryClass);
+        $config->setMetadataCache($this->metadataCache ?? $this->getInMemoryDummyCache());
+    }
+
+    protected function setUpSpecificConfigurations(Configuration $config): void
+    {
+        $config->setHydratorDir($this->hydrationPath ?? sys_get_temp_dir());
+        $config->setHydratorNamespace($this->hydrationNamespace);
+        $config->setAutoGenerateHydratorClasses($this->hydrationAutoGeneration);
+        $config->setPersistentCollectionDir($this->persistentCollectionPath ?? sys_get_temp_dir());
+        $config->setPersistentCollectionNamespace($this->persistentCollectionNamespace);
+        $config->setAutoGeneratePersistentCollectionClasses($this->persistentCollectionAutoGeneration);
+        if ($this->defaultDatabase !== null) {
+            $config->setDefaultDB($this->defaultDatabase);
+        }
+
+        foreach ($this->customFilters as $filter => $class) {
+            $config->addFilter($filter, $class);
         }
     }
 
     /**
-     * Create MongoDB Connection.
-     *
-     * @param Configuration $config
-     *
-     * @throws \InvalidArgumentException
-     * @throws \RuntimeException
-     *
-     * @return Connection
+     * @param Client|array{uri?: string, uriOptions?: array<string, mixed>, driverOptions?: array<string, mixed>} $client
      */
-    protected function getConnection(Configuration $config)
+    public function setClient(array|Client $client): void
     {
-        $connection = $this->getOption('connection');
+        $this->client = $client;
+    }
 
-        switch (true) {
-            case is_array($connection):
-                $connection = new Connection(
-                    array_key_exists('server', $connection) ? $connection['server'] : null,
-                    array_key_exists('options', $connection) ? $connection['options'] : [],
-                    $config,
-                    $this->getEventManager()
-                );
-                break;
+    /**
+     * @throws InvalidArgumentException
+     */
+    public function setRepositoryFactory(RepositoryFactory $repositoryFactory): void
+    {
+        $this->repositoryFactory = $repositoryFactory;
+    }
 
-            case $connection instanceof Connection:
-                if ($connection->getEventManager() !== $this->getEventManager()) {
-                    throw new \RuntimeException(
-                        'Cannot use different EventManager instances for DocumentManager and Connection.'
-                    );
-                }
-                break;
-
-            default:
-                throw new \InvalidArgumentException('Invalid argument: ' . $connection);
+    /**
+     * @param class-string<DocumentRepository<object>> $defaultRepositoryClass
+     *
+     * @throws InvalidArgumentException
+     */
+    public function setDefaultRepositoryClass(string $defaultRepositoryClass): void
+    {
+        if (!class_exists($defaultRepositoryClass)
+            || !\in_array(
+                DocumentRepository::class,
+                class_implements($defaultRepositoryClass),
+                true,
+            )) {
+            throw new InvalidArgumentException(
+                sprintf('Repository class should implement "%s".', DocumentRepository::class),
+            );
         }
 
-        return $connection;
+        $this->defaultRepositoryClass = $defaultRepositoryClass;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    protected function getAnnotationMappingDriver(array $paths)
+    public function setHydrationPath(string $hydrationPath): void
     {
-        return new AnnotationDriver(new AnnotationReader, $paths);
+        $this->hydrationPath = $hydrationPath;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    protected function getXmlMappingDriver(array $paths, $extension = null)
+    public function getHydrationNamespace(string $hydrationNamespace): void
     {
-        $extension = $extension ?: XmlDriver::DEFAULT_FILE_EXTENSION;
-
-        return new XmlDriver($paths, $extension);
+        $this->hydrationNamespace = $hydrationNamespace;
     }
 
     /**
-     * {@inheritdoc}
-     */
-    protected function getYamlMappingDriver(array $paths, $extension = null)
-    {
-        $extension = $extension ?: YamlDriver::DEFAULT_FILE_EXTENSION;
-
-        return new YamlDriver($paths, $extension);
-    }
-
-    /**
-     * {@inheritdoc}
+     * @param int<0, 3> $autoGeneration
      *
-     * @throws \InvalidArgumentException
-     *
-     * @return RepositoryFactory|null
+     * @throws InvalidArgumentException
      */
-    protected function getRepositoryFactory()
+    public function setHydrationAutoGeneration(int $autoGeneration): void
     {
-        if (!array_key_exists('repository_factory', $this->options)) {
-            return;
+        $autoGenerationValues = [
+            Configuration::AUTOGENERATE_ALWAYS,
+            Configuration::AUTOGENERATE_NEVER,
+            Configuration::AUTOGENERATE_FILE_NOT_EXISTS,
+            Configuration::AUTOGENERATE_EVAL,
+        ];
+        if (!\in_array($autoGeneration, $autoGenerationValues, true)) {
+            throw new InvalidArgumentException(
+                sprintf('Invalid hydration auto generation value "%d".', $autoGeneration),
+            );
         }
 
-        $repositoryFactory = $this->options['repository_factory'];
+        $this->hydrationAutoGeneration = $autoGeneration;
+    }
 
-        if (!$repositoryFactory instanceof RepositoryFactory) {
-            throw new \InvalidArgumentException(sprintf(
-                'Invalid factory class "%s". It must be a Doctrine\ODM\MongoDB\Repository\RepositoryFactory.',
-                get_class($repositoryFactory)
-            ));
+    public function setPersistentCollectionPath(string $persistentCollectionPath): void
+    {
+        $this->persistentCollectionPath = $persistentCollectionPath;
+    }
+
+    public function getPersistentCollectionNamespace(string $persistentCollectionNamespace): void
+    {
+        $this->persistentCollectionNamespace = $persistentCollectionNamespace;
+    }
+
+    /**
+     * @param int<0, 3> $autoGeneration
+     *
+     * @throws InvalidArgumentException
+     */
+    public function setPersistentCollectionAutoGeneration(int $autoGeneration): void
+    {
+        $autoGenerationValues = [
+            Configuration::AUTOGENERATE_ALWAYS,
+            Configuration::AUTOGENERATE_NEVER,
+            Configuration::AUTOGENERATE_FILE_NOT_EXISTS,
+            Configuration::AUTOGENERATE_EVAL,
+        ];
+        if (!\in_array($autoGeneration, $autoGenerationValues, true)) {
+            throw new InvalidArgumentException(
+                sprintf('Invalid persist collection auto generation value "%d".', $autoGeneration),
+            );
         }
 
-        return $repositoryFactory;
+        $this->persistentCollectionAutoGeneration = $autoGeneration;
     }
 
-    /**
-     * Retrieve hydrators path.
-     *
-     * @return string
-     */
-    protected function getHydratorsPath()
+    public function setDefaultDatabase(string $defaultDatabase): void
     {
-        return (string) $this->getOption('hydrators_path', sys_get_temp_dir());
+        $this->defaultDatabase = $defaultDatabase;
     }
 
     /**
-     * Retrieve hydrators namespace.
-     *
-     * @return null|string
+     * @param array<string, class-string<Type>> $types
      */
-    protected function getHydratorsNamespace()
+    public function setCustomTypes(array $types): void
     {
-        $proxyNamespace = $this->getOption('hydrators_namespace');
-
-        return is_string($proxyNamespace) ? $proxyNamespace : null;
+        $this->customTypes = $types;
     }
 
     /**
-     * Retrieve hydrators generation strategy.
-     *
-     * @return int
+     * @param array<string, class-string<BsonFilter>> $filters
      */
-    protected function getHydratorsAutoGeneration()
+    public function setCustomFilters(array $filters): void
     {
-        return (int) $this->getOption('hydrators_auto_generation');
+        $this->customFilters = $filters;
     }
 
     /**
-     * Retrieve persistent collections path.
+     * @throws InvalidArgumentException
+     * @throws RuntimeException
+     * @throws UnexpectedValueException
      *
-     * @return string
+     * @return array<Command>
      */
-    protected function getPersistentCollectionPath()
-    {
-        return (string) $this->getOption('persistent_collections_path', sys_get_temp_dir());
-    }
-
-    /**
-     * Retrieve persistent collections namespace.
-     *
-     * @return null|string
-     */
-    protected function getPersistentCollectionNamespace()
-    {
-        $collectionNamespace = $this->getOption('persistent_collections_namespace');
-
-        return is_string($collectionNamespace) ? $collectionNamespace : null;
-    }
-
-    /**
-     * Retrieve persistent collections generation strategy.
-     *
-     * @return int
-     */
-    protected function getAutoGeneratePersistentCollection()
-    {
-        return (int) $this->getOption('persistent_collections_auto_generation');
-    }
-
-    /**
-     * Get default database.
-     *
-     * @return string|null
-     */
-    protected function getDefaultDatabase()
-    {
-        return $this->hasOption('default_database') ? (string) $this->getOption('default_database') : null;
-    }
-
-    /**
-     * Retrieve logger callable.
-     *
-     * @return callable|null
-     */
-    protected function getLoggerCallable()
-    {
-        if (!is_callable($this->loggerCallable)) {
-            $loggerCallable = $this->getOption('logger_callable');
-
-            if (is_callable($loggerCallable)) {
-                $this->loggerCallable = $loggerCallable;
-            }
-        }
-
-        return $this->loggerCallable;
-    }
-
-    /**
-     * Retrieve custom types.
-     *
-     * @return array
-     */
-    protected function getCustomTypes()
-    {
-        $types = (array) $this->getOption('custom_types');
-
-        return array_filter(
-            $types,
-            function ($name) {
-                return is_string($name);
-            },
-            ARRAY_FILTER_USE_KEY
-        );
-    }
-
-    /**
-     * Get custom registered filters.
-     *
-     * @return array
-     */
-    protected function getCustomFilters()
-    {
-        $filters = (array) $this->getOption('custom_filters');
-
-        return array_filter(
-            $filters,
-            function ($name) {
-                return is_string($name);
-            },
-            ARRAY_FILTER_USE_KEY
-        );
-    }
-
-    /**
-     * {@inheritdoc}
-     *
-     * @throws \Doctrine\ODM\MongoDB\MongoDBException
-     * @throws \InvalidArgumentException
-     * @throws \RuntimeException
-     * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
-     * @throws \Symfony\Component\Console\Exception\LogicException
-     * @throws \UnexpectedValueException
-     *
-     * @return Command[]
-     */
-    public function getConsoleCommands()
+    public function getConsoleCommands(): array
     {
         $commands = [
             // ODM
-            new \Doctrine\ODM\MongoDB\Tools\Console\Command\GenerateDocumentsCommand,
-            new \Doctrine\ODM\MongoDB\Tools\Console\Command\GenerateHydratorsCommand,
-            new \Doctrine\ODM\MongoDB\Tools\Console\Command\GenerateProxiesCommand,
-            new \Doctrine\ODM\MongoDB\Tools\Console\Command\GenerateRepositoriesCommand,
-            new \Doctrine\ODM\MongoDB\Tools\Console\Command\QueryCommand,
-            new \Doctrine\ODM\MongoDB\Tools\Console\Command\ClearCache\MetadataCommand,
-            new \Doctrine\ODM\MongoDB\Tools\Console\Command\Schema\CreateCommand,
-            new \Doctrine\ODM\MongoDB\Tools\Console\Command\Schema\DropCommand,
-            new \Doctrine\ODM\MongoDB\Tools\Console\Command\Schema\UpdateCommand,
+            new GenerateHydratorsCommand(),
+            new GenerateProxiesCommand(),
+            new GeneratePersistentCollectionsCommand(),
+            new QueryCommand(),
+            new MetadataCommand(),
+            new CreateCommand(),
+            new DropCommand(),
+            new ShardCommand(),
+            new UpdateCommand(),
+            new ValidateCommand(),
+            new InfoCommand(),
         ];
 
-        if (class_exists('Doctrine\ODM\MongoDB\Tools\Console\Command\Schema\ValidateCommand')) {
-            $commands[] = new \Doctrine\ODM\MongoDB\Tools\Console\Command\Schema\ValidateCommand();
+        if (class_exists(ValidateCommand::class)) {
+            $commands[] = new ValidateCommand();
         }
 
-        $helperSet = $this->getConsoleHelperSet();
+        $helperSet = $this->getConsoleHelperSet($this->getManager());
         $commandPrefix = (string) $this->getName();
 
-        $commands = array_map(
-            function (Command $command) use ($helperSet, $commandPrefix) {
+        return array_map(
+            static function (Command $command) use ($helperSet, $commandPrefix): Command {
                 if ($commandPrefix !== '') {
                     $commandNames = array_map(
-                        function ($commandName) use ($commandPrefix) {
-                            return preg_replace('/^odm:/', 'odm:' . $commandPrefix . ':', $commandName);
-                        },
-                        array_merge([$command->getName()], $command->getAliases())
+                        static fn(string $commandName): string
+                            => (string) preg_replace('/^odm:/', 'odm-' . $commandPrefix . ':', $commandName),
+                        array_merge([$command->getName()], $command->getAliases()),
                     );
 
                     $command->setName(array_shift($commandNames));
@@ -432,24 +353,68 @@ class MongoDBBuilder extends AbstractManagerBuilder
 
                 return $command;
             },
-            $commands
+            $commands,
         );
-
-        return $commands;
     }
 
-    /**
-     * Get console helper set.
-     *
-     * @return \Symfony\Component\Console\Helper\HelperSet
-     */
-    protected function getConsoleHelperSet()
+    protected function getConsoleHelperSet(DocumentManager $documentManager): HelperSet
     {
-        /* @var DocumentManager $documentManager */
-        $documentManager = $this->getManager();
-
         return new HelperSet([
             'dm' => new DocumentManagerHelper($documentManager),
         ]);
+    }
+
+    /**
+     * @throws InvalidArgumentException
+     * @throws RuntimeException
+     */
+    protected function getClient(): Client
+    {
+        $client = $this->client;
+        if (\is_array($client)) {
+            $client = new Client(
+                $client['uri'] ?? 'mongodb://127.0.0.1/',
+                $client['uriOptions'] ?? [],
+                $client['driverOptions'] ?? [],
+            );
+
+            $this->client = $client;
+        }
+
+        return $client;
+    }
+
+    /**
+     * @param list<string> $paths
+     */
+    protected function getAttributeMappingDriver(array $paths): AttributeDriver
+    {
+        return new AttributeDriver($paths);
+    }
+
+    /**
+     * @param list<string> $paths
+     */
+    protected function getAnnotationMappingDriver(array $paths): AnnotationDriver
+    {
+        return new AnnotationDriver(new AnnotationReader(), $paths);
+    }
+
+    /**
+     * @param list<string> $paths
+     */
+    protected function getXmlMappingDriver(array $paths, ?string $extension = null): XmlDriver
+    {
+        return new XmlDriver($paths, $extension ?? XmlDriver::DEFAULT_FILE_EXTENSION);
+    }
+
+    /**
+     * @param list<string> $paths
+     *
+     * @throws RuntimeException
+     */
+    protected function getYamlMappingDriver(array $paths, ?string $extension = null): MappingDriver
+    {
+        throw new RuntimeException('Yaml driver is no longer available.');
     }
 }
