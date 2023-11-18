@@ -1,12 +1,10 @@
 <?php
 
 /*
- * doctrine-manager-builder (https://github.com/juliangut/doctrine-manager-builder).
- * Doctrine2 managers builder.
+ * (c) 2016-2023 Julián Gutiérrez <juliangut@gmail.com>
  *
  * @license BSD-3-Clause
  * @link https://github.com/juliangut/doctrine-manager-builder
- * @author Julián Gutiérrez <juliangut@gmail.com>
  */
 
 declare(strict_types=1);

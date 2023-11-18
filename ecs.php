@@ -1,12 +1,10 @@
 <?php
 
 /*
- * doctrine-manager-builder (https://github.com/juliangut/doctrine-manager-builder).
- * Doctrine2 managers builder.
+ * (c) 2016-2023 Julián Gutiérrez <juliangut@gmail.com>
  *
  * @license BSD-3-Clause
  * @link https://github.com/juliangut/doctrine-manager-builder
- * @author Julián Gutiérrez <juliangut@gmail.com>
  */
 
 declare(strict_types=1);
@@ -14,16 +12,14 @@ declare(strict_types=1);
 use Jgut\ECS\Config\ConfigSet80;
 use Symplify\EasyCodingStandard\Config\ECSConfig;
 
-$header = <<<'HEADER'
-doctrine-manager-builder (https://github.com/juliangut/doctrine-manager-builder).
-Doctrine2 managers builder.
+return static function (ECSConfig $ecsConfig): void {
+    $header = <<<'HEADER'
+    (c) 2016-{{year}} Julián Gutiérrez <juliangut@gmail.com>
 
-@license BSD-3-Clause
-@link https://github.com/juliangut/doctrine-manager-builder
-@author Julián Gutiérrez <juliangut@gmail.com>
-HEADER;
+    @license BSD-3-Clause
+    @link https://github.com/juliangut/doctrine-manager-builder
+    HEADER;
 
-return static function (ECSConfig $ecsConfig) use ($header): void {
     $ecsConfig->paths([
         __FILE__,
         __DIR__ . '/src',

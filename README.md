@@ -1,11 +1,6 @@
-[![PHP version](https://img.shields.io/badge/PHP-%3E%3D5.6-8892BF.svg?style=flat-square)](http://php.net)
+[![PHP version](https://img.shields.io/badge/PHP-%3E%3D8.0-8892BF.svg?style=flat-square)](http://php.net)
 [![Latest Version](https://img.shields.io/packagist/vpre/juliangut/doctrine-manager-builder.svg?style=flat-square)](https://packagist.org/packages/juliangut/doctrine-manager-builder)
 [![License](https://img.shields.io/github/license/juliangut/doctrine-manager-builder.svg?style=flat-square)](https://github.com//doctrine-manager-builder/blob/master/LICENSE)
-
-[![Build Status](https://img.shields.io/travis/juliangut/doctrine-manager-builder.svg?style=flat-square)](https://travis-ci.org/juliangut/doctrine-manager-builder)
-[![Style Check](https://styleci.io/repos/67947100/shield)](https://styleci.io/repos/67947100)
-[![Code Quality](https://img.shields.io/scrutinizer/g/juliangut/doctrine-manager-builder.svg?style=flat-square)](https://scrutinizer-ci.com/g/juliangut/doctrine-manager-builder)
-[![Code Coverage](https://img.shields.io/coveralls/juliangut/doctrine-manager-builder.svg?style=flat-square)](https://coveralls.io/github/juliangut/doctrine-manager-builder)
 
 [![Total Downloads](https://img.shields.io/packagist/dt/juliangut/doctrine-manager-builder.svg?style=flat-square)](https://packagist.org/packages/juliangut/doctrine-manager-builder)
 [![Monthly Downloads](https://img.shields.io/packagist/dm/juliangut/doctrine-manager-builder.svg?style=flat-square)](https://packagist.org/packages/juliangut/doctrine-manager-builder)
@@ -47,6 +42,7 @@ $rdbmsBuilder = new RelationalBuilder([
 ### MongoDB Document Manager
 
 ```php
+use Doctrine\ORM\Mapping\Driver\XmlDriver;
 use Jgut\Doctrine\ManagerBuilder\ManagerBuilder;
 use Jgut\Doctrine\ManagerBuilder\MongoDBBuilder;
 
@@ -57,9 +53,9 @@ $mongoDBBuilder = new MongoDBBuilder([
     ],
     'metadataMapping' => [
         [
-            'driver' => new \Doctrine\ORM\Mapping\Driver\YamlDriver(
+            'driver' => new XmlDriver(
                 'path/to/document/yaml/mapping/files',
-                '.yml'
+                '.xml'
             ),
         ],
         [
@@ -275,7 +271,7 @@ Available commands:
 
 _doctrine-manager only allows named manager builders_
 
-## Migrating from 1
+## Migrating from 1.x
 
 * Minimum PHP version is now 8.0
 * Minimum doctrine/common dependency is now 3.0
