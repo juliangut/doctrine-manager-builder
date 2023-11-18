@@ -17,6 +17,18 @@ Frees you from the tedious work of configuring Doctrine's managers, ORM Entity M
 composer require juliangut/doctrine-manager-builder
 ```
 
+#### Using ORM
+
+```
+composer require doctrime/orm:^2.13
+```
+
+#### Using MongoDB ODM
+
+```
+composer require doctrine/mongodb-odm:^2.3
+```
+
 ## Usage
 
 ### Relational Database Entity Manager
