@@ -18,6 +18,7 @@ class ConsoleBuilder extends AbstractBuilderCollection
     public function getApplication(): Application
     {
         $application = new Application('Doctrine Manager Builder Command Line Interface');
+        $application->setAutoExit(true);
         $application->setCatchExceptions(true);
 
         foreach ($this->builders as $builder) {
