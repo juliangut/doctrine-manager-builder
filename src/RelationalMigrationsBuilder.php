@@ -55,7 +55,7 @@ class RelationalMigrationsBuilder extends RelationalBuilder
         'organize_migrations' => Configuration::VERSIONS_ORGANIZATION_NONE,
     ];
 
-    private ?LoggerInterface $migrationLogger = null;
+    private ?LoggerInterface $migrationsLogger = null;
 
     /**
      * @param array<string, mixed> $migrationsConfiguration
@@ -70,7 +70,7 @@ class RelationalMigrationsBuilder extends RelationalBuilder
 
     public function setMigrationsLogger(LoggerInterface $migrationLogger): void
     {
-        $this->migrationLogger = $migrationLogger;
+        $this->migrationsLogger = $migrationLogger;
     }
 
     public function getConsoleCommands(): array
@@ -80,7 +80,7 @@ class RelationalMigrationsBuilder extends RelationalBuilder
         $dependencyFactory = DependencyFactory::fromEntityManager(
             new ConfigurationArray($this->migrationsConfiguration),
             new ExistingEntityManager($entityManager),
-            $this->migrationLogger,
+            $this->migrationsLogger,
         );
 
         $migrationCommands = [
