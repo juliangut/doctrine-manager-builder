@@ -44,8 +44,8 @@ class ConsoleBuilderTest extends TestCase
 
         $consoleBuilder->addBuilder($builder);
 
-        $application = $consoleBuilder->getApplication();
+        $application = $consoleBuilder->getApplication('prefix');
 
-        static::assertTrue($application->has('command'));
+        static::assertTrue($application->has('prefix:command'));
     }
 }
