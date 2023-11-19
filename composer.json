@@ -38,6 +38,7 @@
     "ext-pdo": "*",
     "doctrine/dbal": "^3.2",
     "doctrine/orm": "^2.13",
+    "doctrine/migrations": "^3.5",
     "doctrine/mongodb-odm": "^2.3",
     "infection/infection": "~0.25|~0.27",
     "juliangut/easy-coding-standard-config": "^1.13",
@@ -51,6 +52,7 @@
   },
   "suggest": {
     "doctrine/orm": "^2.13",
+    "doctrine/migrations": "^3.5",
     "doctrine/mongodb-odm": "^2.3"
   },
   "autoload": {

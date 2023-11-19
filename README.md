@@ -11,19 +11,25 @@ Frees you from the tedious work of configuring Doctrine's managers, ORM Entity M
 
 ## Installation
 
-### Composer
+Best way to install is using [Composer](https://getcomposer.org/):
 
 ```
 composer require juliangut/doctrine-manager-builder
 ```
 
-#### Using ORM
+### Using ORM
 
 ```
 composer require doctrime/orm:^2.13
 ```
 
-#### Using MongoDB ODM
+#### With Doctrine Migrations
+
+```
+composer require doctrime/migrations:^3.5
+```
+
+### Using MongoDB ODM
 
 ```
 composer require doctrine/mongodb-odm:^2.3
@@ -42,10 +48,37 @@ $rdbmsBuilder = new RelationalBuilder([
         'driver' => 'pdo_sqlite',
         'memory' => true,
     ],
-    'metadata_Mapping' => [
+    'metadataMapping' => [
         [
             'type' => ManagerBuilder::METADATA_MAPPING_ATTRIBUTE, 
             'path' => 'path/to/entities',
+        ],
+    ],
+]);
+```
+
+#### With Doctrine Migrations
+
+Specific RelationalMigrationsBuilder comes bundled with Doctrine Migrations integration
+
+```php
+use Jgut\Doctrine\ManagerBuilder\ManagerBuilder;
+use Jgut\Doctrine\ManagerBuilder\RelationalMigrationsBuilder;
+
+$rdbmsBuilder = new RelationalMigrationsBuilder([
+    'connection' => [
+        'driver' => 'pdo_sqlite',
+        'memory' => true,
+    ],
+    'metadataMapping' => [
+        [
+            'type' => ManagerBuilder::METADATA_MAPPING_ATTRIBUTE, 
+            'path' => 'path/to/entities',
+        ],
+    ],
+    'migrationsConfiguration' => [
+        'migrations_paths' => [
+            'App\Migrations' => __DIR__ . '/migrations',
         ],
     ],
 ]);
@@ -111,6 +144,28 @@ $documentManager = $mongoDBBuilder->getManager();
 * `stringFunctions` array of custom `'function_name' => '\Doctrine\ORM\Query\AST\Functions\FunctionNode'` for string DQL functions
 * `numericFunctions` array of custom `'function_name' => '\Doctrine\ORM\Query\AST\Functions\FunctionNode'` for numeric DQL functions
 * `datetimeDunctions` array of custom `'function_name' => '\Doctrine\ORM\Query\AST\Functions\FunctionNode'` for datetime DQL functions
+
+#### With DoctrineMigrations
+
+* `migrationsConfiguration`, array of Doctrine Migrations configurations. The only mandatory configuration is `migrations_paths` or `migrations` as the rest of the configurations are pre-registered
+
+```php
+[
+    'table_storage' => [
+        'table_name' => 'doctrine_migration_versions',
+        'version_column_name' => 'version',
+        'version_column_length' => 191,
+        'executed_at_column_name' => 'executed_at',
+        'execution_time_column_name' => 'execution_time',
+    ],
+    'all_or_nothing' => true,
+    'transactional' => true,
+    'check_database_platform' => true,
+    'organize_migrations' => Configuration::VERSIONS_ORGANIZATION_NONE,
+]
+```
+
+_Do not set "em" or "connection" migration configurations as they will not be used_
 
 ### MongoDB ODM Document Manager
 
