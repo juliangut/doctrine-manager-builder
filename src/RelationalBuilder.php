@@ -266,10 +266,10 @@ class RelationalBuilder extends AbstractManagerBuilder
     public function setDefaultRepositoryClass(string $defaultRepositoryClass): void
     {
         if (!class_exists($defaultRepositoryClass)
-            || !\in_array(EntityRepository::class, class_implements($defaultRepositoryClass), true)
+            || !is_a($defaultRepositoryClass, EntityRepository::class, true)
         ) {
             throw new InvalidArgumentException(
-                sprintf('Repository class should implement "%s".', EntityRepository::class),
+                sprintf('Repository class should be a "%s".', EntityRepository::class),
             );
         }
 

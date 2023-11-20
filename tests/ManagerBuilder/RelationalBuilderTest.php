@@ -19,6 +19,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Cache\CacheConfiguration;
 use Doctrine\ORM\Cache\CacheFactory;
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query\AST\Functions\CountFunction;
 use Doctrine\ORM\Query\AST\Functions\DateDiffFunction;
 use Doctrine\ORM\Query\AST\Functions\LowerFunction;
@@ -47,7 +48,7 @@ class RelationalBuilderTest extends TestCase
     public function testBadRepositoryClass(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageMatches('/^Repository class should implement ".+\\EntityRepository"\.$/');
+        $this->expectExceptionMessageMatches('/^Repository class should be a ".+\\EntityRepository"\.$/');
 
         $builder = new RelationalBuilder();
         $builder->setDefaultRepositoryClass(stdClass::class);
@@ -156,6 +157,7 @@ class RelationalBuilderTest extends TestCase
         $builder->setConnection(['driver' => 'pdo_sqlite', 'memory' => true]);
         $builder->setMetadataMapping([['type' => ManagerBuilder::METADATA_MAPPING_ATTRIBUTE, 'path' => __DIR__]]);
         $builder->setRepositoryFactory(new DefaultRepositoryFactory());
+        $builder->setDefaultRepositoryClass(EntityRepository::class);
         $builder->setSecondLevelCache($cacheConfiguration);
         $builder->setSqlLogger($logger);
         $builder->setCustomStringFunctions(['lower' => LowerFunction::class]);

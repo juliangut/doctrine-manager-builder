@@ -15,6 +15,7 @@ use Doctrine\Common\EventSubscriber;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\Query\Filter\BsonFilter;
 use Doctrine\ODM\MongoDB\Repository\DefaultRepositoryFactory;
+use Doctrine\ODM\MongoDB\Repository\DocumentRepository;
 use Doctrine\ODM\MongoDB\Types\BooleanType;
 use Doctrine\ODM\MongoDB\Types\StringType;
 use InvalidArgumentException;
@@ -38,7 +39,7 @@ class MongoDBBuilderTest extends TestCase
     public function testBadRepositoryClass(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageMatches('/^Repository class should implement ".+\\DocumentRepository"\.$/');
+        $this->expectExceptionMessageMatches('/^Repository class should be a ".+\\DocumentRepository"\.$/');
 
         $builder = new MongoDBBuilder();
         $builder->setDefaultRepositoryClass(stdClass::class);
@@ -90,6 +91,7 @@ class MongoDBBuilderTest extends TestCase
             ['type' => ManagerBuilder::METADATA_MAPPING_ATTRIBUTE, 'path' => __DIR__],
         ]);
         $builder->setRepositoryFactory(new DefaultRepositoryFactory());
+        $builder->setDefaultRepositoryClass(DocumentRepository::class);
         $builder->setDefaultDatabase('ddbb');
         $builder->setEventSubscribers([$eventSubscriber]);
         $builder->setCustomTypes(['string' => StringType::class, 'fake_type' => BooleanType::class]);

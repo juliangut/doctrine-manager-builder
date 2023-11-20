@@ -205,13 +205,10 @@ class MongoDBBuilder extends AbstractManagerBuilder
     public function setDefaultRepositoryClass(string $defaultRepositoryClass): void
     {
         if (!class_exists($defaultRepositoryClass)
-            || !\in_array(
-                DocumentRepository::class,
-                class_implements($defaultRepositoryClass),
-                true,
-            )) {
+            || !is_a($defaultRepositoryClass, DocumentRepository::class, true)
+        ) {
             throw new InvalidArgumentException(
-                sprintf('Repository class should implement "%s".', DocumentRepository::class),
+                sprintf('Repository class should be a "%s".', DocumentRepository::class),
             );
         }
 
