@@ -147,7 +147,7 @@ $documentManager = $mongoDBBuilder->getManager();
 
 #### With DoctrineMigrations
 
-* `migrationsConfiguration`, array of Doctrine Migrations configurations. The only mandatory configuration is `migrations_paths` or `migrations` as the rest of the configurations are pre-registered
+* `migrationsConfiguration`, a Doctrine Migrations Configuration object or an array with configurations. If an array, the only mandatory configuration is either `migrations_paths` or `migrations` as the rest of the configurations are pre-registered
 
 ```php
 [
@@ -162,10 +162,11 @@ $documentManager = $mongoDBBuilder->getManager();
     'transactional' => true,
     'check_database_platform' => true,
     'organize_migrations' => Configuration::VERSIONS_ORGANIZATION_NONE,
+    'custom_template' => './templates/doctrine_migrations_template.php.tpl',
 ]
 ```
 
-_Do not set "em" or "connection" migration configurations as they will not be used_
+_Do not set "em" or "connection" configurations as they will be discarded_
 
 ### MongoDB ODM Document Manager
 

@@ -19,7 +19,6 @@ use Doctrine\Common\EventSubscriber;
 use Doctrine\Common\Proxy\AbstractProxyFactory;
 use Doctrine\Persistence\Mapping\Driver\MappingDriver;
 use Doctrine\Persistence\Mapping\Driver\MappingDriverChain;
-use Doctrine\Persistence\Mapping\Driver\PHPDriver;
 use Doctrine\Persistence\Mapping\Driver\StaticPHPDriver;
 use Doctrine\Persistence\ObjectManager;
 use Ergebnis\Clock\SystemClock;

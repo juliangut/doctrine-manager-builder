@@ -14,6 +14,7 @@ namespace Jgut\Doctrine\ManagerBuilder;
 use Doctrine\Migrations\Configuration\Configuration;
 use Doctrine\Migrations\Configuration\EntityManager\ExistingEntityManager;
 use Doctrine\Migrations\Configuration\Migration\ConfigurationArray;
+use Doctrine\Migrations\Configuration\Migration\ExistingConfiguration;
 use Doctrine\Migrations\DependencyFactory;
 use Doctrine\Migrations\Tools\Console\Command\CurrentCommand;
 use Doctrine\Migrations\Tools\Console\Command\DiffCommand;
@@ -41,7 +42,7 @@ class RelationalMigrationsBuilder extends RelationalBuilder
     /**
      * @var array<string, mixed>
      */
-    private array $migrationsConfiguration = [
+    private array $defaultMigrationsConfiguration = [
         'table_storage' => [
             'table_name' => 'doctrine_migration_versions',
             'version_column_name' => 'version',
@@ -53,19 +54,24 @@ class RelationalMigrationsBuilder extends RelationalBuilder
         'transactional' => true,
         'check_database_platform' => true,
         'organize_migrations' => Configuration::VERSIONS_ORGANIZATION_NONE,
+        'custom_template' => __DIR__ . '/templates/doctrine_migrations_template.php.tpl',
     ];
+
+    /**
+     * @var Configuration|array<string, mixed>|null
+     */
+    private Configuration|array|null $migrationsConfiguration = null;
 
     private ?LoggerInterface $migrationsLogger = null;
 
     /**
-     * @param array<string, mixed> $migrationsConfiguration
+     * @param Configuration|array<string, mixed> $migrationsConfiguration
      */
-    public function setMigrationsConfiguration(array $migrationsConfiguration): void
+    public function setMigrationsConfiguration(Configuration|array $migrationsConfiguration): void
     {
-        $this->migrationsConfiguration = array_replace_recursive(
-            $this->migrationsConfiguration,
-            $migrationsConfiguration,
-        );
+        $this->migrationsConfiguration = $migrationsConfiguration instanceof Configuration
+            ? $migrationsConfiguration
+            : array_replace_recursive($this->defaultMigrationsConfiguration, $migrationsConfiguration);
     }
 
     public function setMigrationsLogger(LoggerInterface $migrationLogger): void
@@ -75,11 +81,12 @@ class RelationalMigrationsBuilder extends RelationalBuilder
 
     public function getConsoleCommands(): array
     {
-        $entityManager = $this->getManager();
-
+        $configuration = $this->migrationsConfiguration ?? $this->defaultMigrationsConfiguration;
         $dependencyFactory = DependencyFactory::fromEntityManager(
-            new ConfigurationArray($this->migrationsConfiguration),
-            new ExistingEntityManager($entityManager),
+            $configuration instanceof Configuration
+                ? new ExistingConfiguration($configuration)
+                : new ConfigurationArray($configuration),
+            new ExistingEntityManager($this->getManager()),
             $this->migrationsLogger,
         );
 
