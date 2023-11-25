@@ -20,6 +20,7 @@ use Doctrine\Common\Proxy\AbstractProxyFactory;
 use Doctrine\Persistence\Mapping\Driver\MappingDriver;
 use Doctrine\Persistence\Mapping\Driver\MappingDriverChain;
 use Doctrine\Persistence\Mapping\Driver\PHPDriver;
+use Doctrine\Persistence\Mapping\Driver\StaticPHPDriver;
 use Doctrine\Persistence\ObjectManager;
 use Ergebnis\Clock\SystemClock;
 use InvalidArgumentException;
@@ -255,9 +256,9 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
     /**
      * @param list<string> $paths
      */
-    protected function getPhpMappingDriver(array $paths): PHPDriver
+    protected function getPhpMappingDriver(array $paths): StaticPHPDriver
     {
-        return new PHPDriver($paths);
+        return new StaticPHPDriver($paths);
     }
 
     public function setProxiesPath(string $proxiesPath): void
