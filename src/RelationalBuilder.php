@@ -210,7 +210,7 @@ class RelationalBuilder extends AbstractManagerBuilder
     protected function setUpGeneralConfigurations(Configuration $config): void
     {
         $config->setMetadataDriverImpl($this->getMetadataMappingDriver());
-        $config->setProxyDir($this->proxiesPath ?? sys_get_temp_dir());
+        $config->setProxyDir($this->proxiesPath ?? sys_get_temp_dir() . '/doctrine/orm/proxies');
         $config->setProxyNamespace($this->proxiesNamespace);
         $config->setAutoGenerateProxyClasses($this->proxiesAutoGeneration);
         if ($this->repositoryFactory !== null) {

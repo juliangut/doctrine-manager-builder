@@ -154,7 +154,7 @@ class MongoDBBuilder extends AbstractManagerBuilder
     protected function setUpGeneralConfigurations(Configuration $config): void
     {
         $config->setMetadataDriverImpl($this->getMetadataMappingDriver());
-        $config->setProxyDir($this->proxiesPath ?? sys_get_temp_dir());
+        $config->setProxyDir($this->proxiesPath ?? sys_get_temp_dir() . '/doctrine/odm/proxies');
         $config->setProxyNamespace($this->proxiesNamespace);
         $config->setAutoGenerateProxyClasses($this->proxiesAutoGeneration);
         if ($this->repositoryFactory !== null) {
@@ -166,10 +166,12 @@ class MongoDBBuilder extends AbstractManagerBuilder
 
     protected function setUpSpecificConfigurations(Configuration $config): void
     {
-        $config->setHydratorDir($this->hydrationPath ?? sys_get_temp_dir());
+        $config->setHydratorDir($this->hydrationPath ?? sys_get_temp_dir() . '/doctrine/odm/hydrators');
         $config->setHydratorNamespace($this->hydrationNamespace);
         $config->setAutoGenerateHydratorClasses($this->hydrationAutoGeneration);
-        $config->setPersistentCollectionDir($this->persistentCollectionPath ?? sys_get_temp_dir());
+        if ($this->persistentCollectionPath !== null) {
+            $config->setPersistentCollectionDir($this->persistentCollectionPath);
+        }
         $config->setPersistentCollectionNamespace($this->persistentCollectionNamespace);
         $config->setAutoGeneratePersistentCollectionClasses($this->persistentCollectionAutoGeneration);
         if ($this->defaultDatabase !== null) {
