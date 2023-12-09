@@ -313,17 +313,17 @@ class MongoDBBuilder extends AbstractManagerBuilder
     {
         $commands = [
             // ODM
-            new GenerateHydratorsCommand(),
             new GenerateProxiesCommand(),
+            new GenerateHydratorsCommand(),
             new GeneratePersistentCollectionsCommand(),
-            new QueryCommand(),
-            new MetadataCommand(),
-            new CreateCommand(),
-            new DropCommand(),
-            new ShardCommand(),
-            new UpdateCommand(),
-            new ValidateCommand(),
             new InfoCommand(),
+            new ValidateCommand(),
+            new MetadataCommand(),
+            new ShardCommand(),
+            new QueryCommand(),
+            new CreateCommand(),
+            new UpdateCommand(),
+            new DropCommand(),
         ];
 
         if (class_exists(ValidateCommand::class)) {

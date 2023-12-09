@@ -403,20 +403,20 @@ class RelationalBuilder extends AbstractManagerBuilder
             // ORM Commands
             new ConvertMappingCommand($entityManagerProvider),
             new EnsureProductionSettingsCommand($entityManagerProvider),
-            new GenerateProxiesCommand($entityManagerProvider),
             new InfoCommand($entityManagerProvider),
+            new ValidateSchemaCommand($entityManagerProvider),
             new MappingDescribeCommand($entityManagerProvider),
             new RunDqlCommand($entityManagerProvider),
-            new ValidateSchemaCommand($entityManagerProvider),
-            new CollectionRegionCommand($entityManagerProvider),
-            new EntityRegionCommand($entityManagerProvider),
             new MetadataCommand($entityManagerProvider),
             new QueryCommand($entityManagerProvider),
-            new QueryRegionCommand($entityManagerProvider),
             new ResultCommand($entityManagerProvider),
+            new CollectionRegionCommand($entityManagerProvider),
+            new EntityRegionCommand($entityManagerProvider),
+            new QueryRegionCommand($entityManagerProvider),
+            new GenerateProxiesCommand($entityManagerProvider),
             new CreateCommand($entityManagerProvider),
-            new DropCommand($entityManagerProvider),
             new UpdateCommand($entityManagerProvider),
+            new DropCommand($entityManagerProvider),
         ];
 
         $helperSet = $this->getConsoleHelperSet($entityManager);
