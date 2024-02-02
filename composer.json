@@ -31,7 +31,7 @@
     "doctrine/common": "^3.2",
     "ergebnis/clock": "^2.6",
     "psr/cache": "^3.0",
-    "symfony/console": "^6.0"
+    "symfony/console": "^6.0|^7.0"
   },
   "require-dev": {
     "ext-mongodb": "*",
