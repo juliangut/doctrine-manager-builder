@@ -13,17 +13,18 @@ namespace Jgut\Doctrine\ManagerBuilder\Console\Command\MongoDB;
 
 use Doctrine\ODM\MongoDB\Tools\Console\Helper\DocumentManagerHelper;
 use Doctrine\ORM\Mapping\MappingException;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
+#[AsCommand(name: 'odm:info')]
 class InfoCommand extends Command
 {
     protected function configure(): void
     {
-        $this->setName('odm:info')
-            ->setDescription('Show basic information about all mapped documents')
+        $this->setDescription('Show basic information about all mapped documents')
             ->setHelp(
                 <<<'EOT'
                 The <info>%command.name%</info> shows basic information about which
