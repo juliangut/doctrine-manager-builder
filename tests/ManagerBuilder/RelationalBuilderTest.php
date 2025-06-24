@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace Jgut\Doctrine\ManagerBuilder\Tests;
 
 use Doctrine\Common\EventSubscriber;
+use Doctrine\DBAL\Driver\Middleware as MiddlewareInterface;
 use Doctrine\DBAL\Exception as DBALException;
 use Doctrine\DBAL\Types\BooleanType;
 use Doctrine\DBAL\Types\StringType;
@@ -150,6 +151,12 @@ class RelationalBuilderTest extends TestCase
             ->method('getCacheFactory')
             ->willReturn($cacheFactory);
 
+        $middleware = $this->getMockBuilder(MiddlewareInterface::class)
+            ->getMock();
+        $middleware->expects(static::once())
+            ->method('wrap')
+            ->willReturnArgument(0);
+
         $logger = $this->getMockBuilder(LoggerInterface::class)
             ->getMock();
 
@@ -159,6 +166,7 @@ class RelationalBuilderTest extends TestCase
         $builder->setRepositoryFactory(new DefaultRepositoryFactory());
         $builder->setDefaultRepositoryClass(EntityRepository::class);
         $builder->setSecondLevelCache($cacheConfiguration);
+        $builder->setMiddlewares([$middleware]);
         $builder->setSqlLogger($logger);
         $builder->setCustomStringFunctions(['lower' => LowerFunction::class]);
         $builder->setCustomNumericFunctions(['count' => CountFunction::class]);

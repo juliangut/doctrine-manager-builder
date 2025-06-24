@@ -114,6 +114,11 @@ class RelationalBuilder extends AbstractManagerBuilder
 
     protected ?CacheConfiguration $secondLevelCache = null;
 
+    /**
+     * @var list<MiddlewareInterface>
+     */
+    protected array $middlewares = [];
+
     protected ?MiddlewareInterface $sqlLoggerMiddleware = null;
 
     /**
@@ -170,6 +175,7 @@ class RelationalBuilder extends AbstractManagerBuilder
         $this->hydrationCache = null;
         $this->namingStrategy = null;
         $this->quoteStrategy = null;
+        $this->middlewares = [];
         $this->sqlLoggerMiddleware = null;
     }
 
@@ -237,9 +243,14 @@ class RelationalBuilder extends AbstractManagerBuilder
             $config->setSecondLevelCacheConfiguration($this->secondLevelCache);
         }
 
+        $middlewares = $this->middlewares;
         if ($this->sqlLoggerMiddleware !== null) {
-            $config->setMiddlewares([$this->sqlLoggerMiddleware]);
+            $middlewares[] = $this->sqlLoggerMiddleware;
         }
+        if (\count($middlewares) !== 0) {
+            $config->setMiddlewares($middlewares);
+        }
+
         $config->setCustomStringFunctions($this->customStringFunctions);
         $config->setCustomNumericFunctions($this->customNumericFunctions);
         $config->setCustomDatetimeFunctions($this->customDateTimeFunctions);
@@ -353,6 +364,14 @@ class RelationalBuilder extends AbstractManagerBuilder
     public function setSecondLevelCache(CacheConfiguration $secondLevelCache): void
     {
         $this->secondLevelCache = $secondLevelCache;
+    }
+
+    /**
+     * @param list<MiddlewareInterface> $middlewares
+     */
+    public function setMiddlewares(array $middlewares): void
+    {
+        $this->middlewares = $middlewares;
     }
 
     public function setSqlLogger(LoggerInterface $sqlLogger): void
