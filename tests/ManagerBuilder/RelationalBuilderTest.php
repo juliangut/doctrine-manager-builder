@@ -48,7 +48,7 @@ class RelationalBuilderTest extends TestCase
     public function testBadRepositoryClass(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageMatches('/^Repository class should be a ".+\\EntityRepository"\.$/');
+        $this->expectExceptionMessageMatches('/^Repository class should be a ".+\EntityRepository"\.$/');
 
         $builder = new RelationalBuilder();
         $builder->setDefaultRepositoryClass(stdClass::class);

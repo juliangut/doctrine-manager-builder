@@ -56,7 +56,7 @@ abstract class AbstractBuilderCollection
         }
 
         if (\array_key_exists($builderName, $this->builders)) {
-            throw new RuntimeException(sprintf('"%s" manager builder is already registered.', $builderName));
+            throw new RuntimeException(\sprintf('"%s" manager builder is already registered.', $builderName));
         }
 
         $this->builders[$builderName] = $builder;

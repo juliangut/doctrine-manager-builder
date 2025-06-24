@@ -27,7 +27,7 @@ interface ManagerBuilder
     public function getManager(bool $force = false): ObjectManager;
 
     /**
-     * @return array<Command>
+     * @return list<Command>
      */
     public function getConsoleCommands(): array;
 }

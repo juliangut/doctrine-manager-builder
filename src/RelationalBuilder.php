@@ -269,7 +269,7 @@ class RelationalBuilder extends AbstractManagerBuilder
             || !is_a($defaultRepositoryClass, EntityRepository::class, true)
         ) {
             throw new InvalidArgumentException(
-                sprintf('Repository class should be a "%s".', EntityRepository::class),
+                \sprintf('Repository class should be a "%s".', EntityRepository::class),
             );
         }
 
@@ -386,7 +386,7 @@ class RelationalBuilder extends AbstractManagerBuilder
      * @throws RuntimeException
      * @throws UnexpectedValueException
      *
-     * @return array<Command>
+     * @return list<Command>
      */
     public function getConsoleCommands(): array
     {

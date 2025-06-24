@@ -77,7 +77,7 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
         foreach ($options as $option => $value) {
             $method = 'set' . ucfirst($option);
             if (!method_exists($this, $method)) {
-                throw new InvalidArgumentException(sprintf('Unknown configuration "%s".', $option));
+                throw new InvalidArgumentException(\sprintf('Unknown configuration "%s".', $option));
             }
 
             /** @var callable(mixed): void $callable */
@@ -172,7 +172,7 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
 
             if (!$mappingDriver instanceof MappingDriver) {
                 throw new UnexpectedValueException(
-                    sprintf(
+                    \sprintf(
                         'Provided driver should be an instance of "%s", "%s" given.',
                         MappingDriver::class,
                         \is_object($mappingDriver) ? $mappingDriver::class : \gettype($mappingDriver),
@@ -228,7 +228,7 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
         }
 
         throw new UnexpectedValueException(
-            sprintf('"%s" is not a valid metadata mapping type.', $type),
+            \sprintf('"%s" is not a valid metadata mapping type.', $type),
         );
     }
 
@@ -287,7 +287,7 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
 
         if (!\in_array($autoGeneration, $autoGenerationValues, true)) {
             throw new InvalidArgumentException(
-                sprintf('Invalid proxies auto generation value "%d".', $autoGeneration),
+                \sprintf('Invalid proxies auto generation value "%d".', $autoGeneration),
             );
         }
 

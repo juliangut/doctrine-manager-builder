@@ -24,7 +24,7 @@ class ConsoleBuilder extends AbstractBuilderCollection
         foreach ($this->builders as $builder) {
             foreach ($builder->getConsoleCommands() as $command) {
                 if ($commandPrefix !== null) {
-                    $command->setName(sprintf('%s:%s', rtrim($commandPrefix, ':'), $command->getName()));
+                    $command->setName(\sprintf('%s:%s', mb_rtrim($commandPrefix, ':'), $command->getName()));
                 }
 
                 $application->add($command);

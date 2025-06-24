@@ -39,7 +39,7 @@ class MongoDBBuilderTest extends TestCase
     public function testBadRepositoryClass(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageMatches('/^Repository class should be a ".+\\DocumentRepository"\.$/');
+        $this->expectExceptionMessageMatches('/^Repository class should be a ".+\DocumentRepository"\.$/');
 
         $builder = new MongoDBBuilder();
         $builder->setDefaultRepositoryClass(stdClass::class);

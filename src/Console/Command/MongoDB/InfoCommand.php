@@ -63,7 +63,7 @@ class InfoCommand extends Command
             return self::FAILURE;
         }
 
-        $style->text(sprintf('Found <info>%d</info> mapped documents:', \count($documentClassNames)));
+        $style->text(\sprintf('Found <info>%d</info> mapped documents:', \count($documentClassNames)));
         $style->newLine();
 
         $failure = false;
@@ -71,12 +71,12 @@ class InfoCommand extends Command
         foreach ($documentClassNames as $entityClassName) {
             try {
                 $documentManager->getClassMetadata($entityClassName);
-                $style->text(sprintf('<info>[OK]</info>   %s', $entityClassName));
+                $style->text(\sprintf('<info>[OK]</info>   %s', $entityClassName));
             } catch (MappingException $e) {
                 $style->text(
                     [
-                        sprintf('<error>[FAIL]</error> %s', $entityClassName),
-                        sprintf('<comment>%s</comment>', $e->getMessage()),
+                        \sprintf('<error>[FAIL]</error> %s', $entityClassName),
+                        \sprintf('<comment>%s</comment>', $e->getMessage()),
                         '',
                     ],
                 );

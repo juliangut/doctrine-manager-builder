@@ -210,7 +210,7 @@ class MongoDBBuilder extends AbstractManagerBuilder
             || !is_a($defaultRepositoryClass, DocumentRepository::class, true)
         ) {
             throw new InvalidArgumentException(
-                sprintf('Repository class should be a "%s".', DocumentRepository::class),
+                \sprintf('Repository class should be a "%s".', DocumentRepository::class),
             );
         }
 
@@ -242,7 +242,7 @@ class MongoDBBuilder extends AbstractManagerBuilder
         ];
         if (!\in_array($autoGeneration, $autoGenerationValues, true)) {
             throw new InvalidArgumentException(
-                sprintf('Invalid hydration auto generation value "%d".', $autoGeneration),
+                \sprintf('Invalid hydration auto generation value "%d".', $autoGeneration),
             );
         }
 
@@ -274,7 +274,7 @@ class MongoDBBuilder extends AbstractManagerBuilder
         ];
         if (!\in_array($autoGeneration, $autoGenerationValues, true)) {
             throw new InvalidArgumentException(
-                sprintf('Invalid persist collection auto generation value "%d".', $autoGeneration),
+                \sprintf('Invalid persist collection auto generation value "%d".', $autoGeneration),
             );
         }
 
@@ -307,7 +307,7 @@ class MongoDBBuilder extends AbstractManagerBuilder
      * @throws RuntimeException
      * @throws UnexpectedValueException
      *
-     * @return array<Command>
+     * @return list<Command>
      */
     public function getConsoleCommands(): array
     {
