@@ -16,7 +16,6 @@ use Doctrine\Common\Cache\CacheProvider;
 use Doctrine\Common\Cache\Psr6\CacheAdapter;
 use Doctrine\Common\EventManager;
 use Doctrine\Common\EventSubscriber;
-use Doctrine\Common\Proxy\AbstractProxyFactory;
 use Doctrine\Persistence\Mapping\Driver\MappingDriver;
 use Doctrine\Persistence\Mapping\Driver\MappingDriverChain;
 use Doctrine\Persistence\Mapping\Driver\StaticPHPDriver;
@@ -43,11 +42,6 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
     protected ?string $proxiesPath = null;
 
     protected string $proxiesNamespace;
-
-    /**
-     * @var int<0, 4>
-     */
-    protected int $proxiesAutoGeneration = AbstractProxyFactory::AUTOGENERATE_NEVER;
 
     protected ?string $name = null;
 
@@ -214,9 +208,6 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
             case ManagerBuilder::METADATA_MAPPING_ATTRIBUTE:
                 return $this->getAttributeMappingDriver($paths);
 
-            case ManagerBuilder::METADATA_MAPPING_ANNOTATION:
-                return $this->getAnnotationMappingDriver($paths);
-
             case ManagerBuilder::METADATA_MAPPING_XML:
                 return $this->getXmlMappingDriver($paths, $extension);
 
@@ -236,11 +227,6 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
      * @param list<string> $paths
      */
     abstract protected function getAttributeMappingDriver(array $paths): MappingDriver;
-
-    /**
-     * @param list<string> $paths
-     */
-    abstract protected function getAnnotationMappingDriver(array $paths): MappingDriver;
 
     /**
      * @param list<string> $paths
@@ -268,30 +254,6 @@ abstract class AbstractManagerBuilder implements ManagerBuilder
     public function setProxiesNamespace(string $proxiesNamespace): void
     {
         $this->proxiesNamespace = $proxiesNamespace;
-    }
-
-    /**
-     * @param int<0, 4> $autoGeneration
-     *
-     * @throws InvalidArgumentException
-     */
-    public function setProxiesAutoGeneration(int $autoGeneration): void
-    {
-        $autoGenerationValues = [
-            AbstractProxyFactory::AUTOGENERATE_ALWAYS,
-            AbstractProxyFactory::AUTOGENERATE_NEVER,
-            AbstractProxyFactory::AUTOGENERATE_FILE_NOT_EXISTS,
-            AbstractProxyFactory::AUTOGENERATE_EVAL,
-            AbstractProxyFactory::AUTOGENERATE_FILE_NOT_EXISTS_OR_CHANGED,
-        ];
-
-        if (!\in_array($autoGeneration, $autoGenerationValues, true)) {
-            throw new InvalidArgumentException(
-                \sprintf('Invalid proxies auto generation value "%d".', $autoGeneration),
-            );
-        }
-
-        $this->proxiesAutoGeneration = $autoGeneration;
     }
 
     /**

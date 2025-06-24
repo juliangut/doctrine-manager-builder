@@ -184,7 +184,7 @@ _Do not set "em" or "connection" configurations as they will be discarded_
 ### Considerations
 
 * `metadataMapping` must be an array containing arrays of configurations to create MappingDriver objects:
-    * `type` one of \Jgut\Doctrine\ManagerBuilder\ManagerBuilder constants: `METADATA_MAPPING_ATTRIBUTES`, `METADATA_MAPPING_XML`, `METADATA_MAPPING_PHP`, `METADATA_MAPPING_YAML` or `METADATA_MAPPING_ANNOTATION` **REQUIRED if no driver**
+    * `type` one of \Jgut\Doctrine\ManagerBuilder\ManagerBuilder constants: `METADATA_MAPPING_ATTRIBUTES`, `METADATA_MAPPING_XML`, `METADATA_MAPPING_PHP` or `METADATA_MAPPING_YAML` **REQUIRED if no driver**
     * `path` a string path or array of paths to where mapping files are **REQUIRED if no driver**
     * `extension` overrides default mapping file extension: '.dcm.xml' for XML files and '.dcm.yml' for YAML files
     * `namespace` the namespace under which the mapped classes are **REQUIRED only if more than ONE mapping driver is defined**
@@ -339,17 +339,10 @@ Available commands:
 
 _doctrine-manager only allows named manager builders_
 
-## Migrating from 1.x
+## Migrating from 2.x
 
-* Minimum PHP version is now 8.0
-* Minimum doctrine/common dependency is now 3.0
-* Minimum doctrine/orm is now 2.13
-* Minimum doctrine/mongodb-odm is now 2.3
-* Configuration names have changed to camelCase
-* Caches must be instances of PSR6 instead of doctrine/cache
-* Auto generated caches are now always in-memory instances
-* MongoDBBuilder's `connection` configuration is now `client`
-* Annotation mapping is deprecated, migrate to Attribute mapping
+* Minimum doctrine/orm is now 2.19
+* Annotation mapping has been removed
 * YAML mapping for MongoDBBuilder has been removed
 
 ## Contributing

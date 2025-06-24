@@ -11,7 +11,6 @@ declare(strict_types=1);
 
 namespace Jgut\Doctrine\ManagerBuilder;
 
-use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\Cache\CacheProvider;
 use Doctrine\Common\Cache\Psr6\CacheAdapter;
 use Doctrine\Common\EventManager;
@@ -28,7 +27,6 @@ use Doctrine\ORM\Configuration;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Mapping\DefaultQuoteStrategy;
-use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use Doctrine\ORM\Mapping\Driver\AttributeDriver;
 use Doctrine\ORM\Mapping\Driver\XmlDriver;
 use Doctrine\ORM\Mapping\Driver\YamlDriver;
@@ -36,6 +34,7 @@ use Doctrine\ORM\Mapping\NamingStrategy;
 use Doctrine\ORM\Mapping\QuoteStrategy;
 use Doctrine\ORM\Mapping\UnderscoreNamingStrategy;
 use Doctrine\ORM\ORMException;
+use Doctrine\ORM\Proxy\ProxyFactory;
 use Doctrine\ORM\Query\AST\Functions\FunctionNode;
 use Doctrine\ORM\Query\Filter\SQLFilter;
 use Doctrine\ORM\Repository\RepositoryFactory;
@@ -81,6 +80,11 @@ class RelationalBuilder extends AbstractManagerBuilder
     protected Connection|array $connection = [];
 
     protected string $proxiesNamespace = 'DoctrineRDBMSORMProxy';
+
+    /**
+     * @var int<0, 4>
+     */
+    private mixed $proxiesAutoGeneration = ProxyFactory::AUTOGENERATE_FILE_NOT_EXISTS;
 
     protected ?RepositoryFactory $repositoryFactory = null;
 
@@ -251,6 +255,30 @@ class RelationalBuilder extends AbstractManagerBuilder
     public function setConnection(Connection|array $connection): void
     {
         $this->connection = $connection;
+    }
+
+    /**
+     * @param ProxyFactory::AUTOGENERATE_* $autoGeneration
+     *
+     * @throws InvalidArgumentException
+     */
+    public function setProxiesAutoGeneration(int $autoGeneration): void
+    {
+        $autoGenerationValues = [
+            ProxyFactory::AUTOGENERATE_ALWAYS,
+            ProxyFactory::AUTOGENERATE_NEVER,
+            ProxyFactory::AUTOGENERATE_FILE_NOT_EXISTS,
+            ProxyFactory::AUTOGENERATE_EVAL,
+            ProxyFactory::AUTOGENERATE_FILE_NOT_EXISTS_OR_CHANGED,
+        ];
+
+        if (!\in_array($autoGeneration, $autoGenerationValues, true)) {
+            throw new InvalidArgumentException(
+                \sprintf('Invalid proxies auto generation value "%d".', $autoGeneration),
+            );
+        }
+
+        $this->proxiesAutoGeneration = $autoGeneration;
     }
 
     public function setRepositoryFactory(RepositoryFactory $repositoryFactory): void
@@ -468,14 +496,6 @@ class RelationalBuilder extends AbstractManagerBuilder
     protected function getAttributeMappingDriver(array $paths): AttributeDriver
     {
         return new AttributeDriver($paths);
-    }
-
-    /**
-     * @param list<string> $paths
-     */
-    protected function getAnnotationMappingDriver(array $paths): AnnotationDriver
-    {
-        return new AnnotationDriver(new AnnotationReader(), $paths);
     }
 
     /**

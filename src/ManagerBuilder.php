@@ -17,7 +17,6 @@ use Symfony\Component\Console\Command\Command;
 interface ManagerBuilder
 {
     public const METADATA_MAPPING_ATTRIBUTE = 'attribute';
-    public const METADATA_MAPPING_ANNOTATION = 'annotation';
     public const METADATA_MAPPING_XML = 'xml';
     public const METADATA_MAPPING_YAML = 'yaml';
     public const METADATA_MAPPING_PHP = 'php';

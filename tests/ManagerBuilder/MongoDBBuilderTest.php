@@ -112,11 +112,6 @@ class MongoDBBuilderTest extends TestCase
                 'path' => __DIR__ . '/Mapping/Files/MongoDB/Attribute',
                 'namespace' => 'Jgut\Doctrine\ManagerBuilder\Tests\Mapping\Files\MongoDB\Attribute',
             ],
-            [
-                'type' => ManagerBuilder::METADATA_MAPPING_ANNOTATION,
-                'path' => __DIR__ . '/Mapping/Files/MongoDB/Annotation',
-                'namespace' => 'Jgut\Doctrine\ManagerBuilder\Tests\Mapping\Files\MongoDB\Annotation',
-            ],
         ]);
 
         foreach ($builder->getConsoleCommands() as $command) {
@@ -128,10 +123,6 @@ class MongoDBBuilderTest extends TestCase
 
                 static::assertStringContainsString(
                     'Jgut\Doctrine\ManagerBuilder\Tests\Mapping\Files\MongoDB\Attribute',
-                    $output->getOutput(),
-                );
-                static::assertStringContainsString(
-                    'Jgut\Doctrine\ManagerBuilder\Tests\Mapping\Files\MongoDB\Annotation',
                     $output->getOutput(),
                 );
             }

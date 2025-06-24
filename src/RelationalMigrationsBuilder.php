@@ -108,7 +108,7 @@ class RelationalMigrationsBuilder extends RelationalBuilder
 
         $commands = parent::getConsoleCommands();
         /** @var HelperSet $helperSet */
-        $helperSet = $commands[array_key_first($commands)]->getHelperSet();
+        $helperSet = $commands[0]->getHelperSet();
         $commandPrefix = (string) $this->getName();
 
         return array_merge(

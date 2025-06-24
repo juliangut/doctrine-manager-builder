@@ -181,11 +181,6 @@ class RelationalBuilderTest extends TestCase
                 'path' => __DIR__ . '/Mapping/Files/Relational/Attribute',
                 'namespace' => 'Jgut\Doctrine\ManagerBuilder\Tests\Mapping\Files\Relational\Attribute',
             ],
-            [
-                'type' => ManagerBuilder::METADATA_MAPPING_ANNOTATION,
-                'path' => __DIR__ . '/Mapping/Files/Relational/Annotation',
-                'namespace' => 'Jgut\Doctrine\ManagerBuilder\Tests\Mapping\Files\Relational\Annotation',
-            ],
         ]);
 
         foreach ($builder->getConsoleCommands() as $command) {
@@ -197,10 +192,6 @@ class RelationalBuilderTest extends TestCase
 
                 static::assertStringContainsString(
                     'Jgut\Doctrine\ManagerBuilder\Tests\Mapping\Files\Relational\Attribute',
-                    $output->getOutput(),
-                );
-                static::assertStringContainsString(
-                    'Jgut\Doctrine\ManagerBuilder\Tests\Mapping\Files\Relational\Annotation',
                     $output->getOutput(),
                 );
             }

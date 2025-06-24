@@ -11,12 +11,9 @@ declare(strict_types=1);
 
 namespace Jgut\Doctrine\ManagerBuilder;
 
-use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\EventManager;
-use Doctrine\Common\Proxy\AbstractProxyFactory;
 use Doctrine\ODM\MongoDB\Configuration;
 use Doctrine\ODM\MongoDB\DocumentManager;
-use Doctrine\ODM\MongoDB\Mapping\Driver\AnnotationDriver;
 use Doctrine\ODM\MongoDB\Mapping\Driver\AttributeDriver;
 use Doctrine\ODM\MongoDB\Mapping\Driver\XmlDriver;
 use Doctrine\ODM\MongoDB\Query\Filter\BsonFilter;
@@ -61,7 +58,7 @@ class MongoDBBuilder extends AbstractManagerBuilder
     /**
      * @var int<0, 4>
      */
-    protected int $proxiesAutoGeneration = AbstractProxyFactory::AUTOGENERATE_FILE_NOT_EXISTS;
+    protected int $proxiesAutoGeneration = Configuration::AUTOGENERATE_FILE_NOT_EXISTS;
 
     protected ?RepositoryFactory $repositoryFactory = null;
 
@@ -189,6 +186,30 @@ class MongoDBBuilder extends AbstractManagerBuilder
     public function setClient(array|Client $client): void
     {
         $this->client = $client;
+    }
+
+    /**
+     * @param int<0, 4> $autoGeneration
+     *
+     * @throws InvalidArgumentException
+     */
+    public function setProxiesAutoGeneration(int $autoGeneration): void
+    {
+        $autoGenerationValues = [
+            Configuration::AUTOGENERATE_ALWAYS,
+            Configuration::AUTOGENERATE_NEVER,
+            Configuration::AUTOGENERATE_FILE_NOT_EXISTS,
+            Configuration::AUTOGENERATE_EVAL,
+            Configuration::AUTOGENERATE_FILE_NOT_EXISTS_OR_CHANGED,
+        ];
+
+        if (!\in_array($autoGeneration, $autoGenerationValues, true)) {
+            throw new InvalidArgumentException(
+                \sprintf('Invalid proxies auto generation value "%d".', $autoGeneration),
+            );
+        }
+
+        $this->proxiesAutoGeneration = $autoGeneration;
     }
 
     /**
@@ -387,14 +408,6 @@ class MongoDBBuilder extends AbstractManagerBuilder
     protected function getAttributeMappingDriver(array $paths): AttributeDriver
     {
         return new AttributeDriver($paths);
-    }
-
-    /**
-     * @param list<string> $paths
-     */
-    protected function getAnnotationMappingDriver(array $paths): AnnotationDriver
-    {
-        return new AnnotationDriver(new AnnotationReader(), $paths);
     }
 
     /**

@@ -5,6 +5,7 @@ parameters:
   level: max
   parallel:
     maximumNumberOfProcesses: 7
+  treatPhpDocTypesAsCertain: false
   paths:
     - src
   ignoreErrors:
@@ -16,9 +17,7 @@ parameters:
     - messages:
       - '/^Return type of method Jgut\\Doctrine\\ManagerBuilder\\RelationalBuilder::getYamlMappingDriver\(\) has typehint with deprecated class Doctrine\\ORM\\Mapping\\Driver\\YamlDriver/'
       - '/^Fetching class constant DEFAULT_FILE_EXTENSION of deprecated class Doctrine\\ORM\\Mapping\\Driver\\YamlDriver/'
-      - '/^Instantiation of deprecated class Doctrine\\ORM\\Mapping\\Driver\\AnnotationDriver/'
       - '/^Instantiation of deprecated class Doctrine\\ORM\\Mapping\\Driver\\YamlDriver/'
-      - '/^Return type of method Jgut\\Doctrine\\ManagerBuilder\\RelationalBuilder::getAnnotationMappingDriver\(\) has typehint with deprecated class Doctrine\\ORM\\Mapping\\Driver\\AnnotationDriver/'
       - '/^Instantiation of deprecated class Doctrine\\DBAL\\Tools\\Console\\Command\\.+Command/'
       - '/^Return type of anonymous function has typehint with deprecated class Doctrine\\DBAL\\Tools\\Console\\Command\\ReservedWordsCommand/'
       - /^Instantiation of deprecated class Doctrine\\ORM\\Tools\\Console\\Command\\.+Command\.$/
